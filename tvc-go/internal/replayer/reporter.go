@@ -6,20 +6,19 @@ import (
 	"fmt"
 	"sort"
 	"time"
-
 )
 
 type ReportSummary struct {
-	SessionName      string        `json:"session_name"`
-	TargetURL        string        `json:"target_url"`
-	TotalRequests    int           `json:"total_requests"`
-	Successful       int           `json:"successful"`
-	Failed           int           `json:"failed"`
-	Mismatched       int           `json:"mismatched"`
-	MatchRate        float64       `json:"match_rate"`
-	AvgDriftScore    float64       `json:"avg_drift_score"`
-	AvgLatencyMs     float64       `json:"avg_latency_ms"`
-	Duration         time.Duration `json:"duration"`
+	SessionName      string         `json:"session_name"`
+	TargetURL        string         `json:"target_url"`
+	TotalRequests    int            `json:"total_requests"`
+	Successful       int            `json:"successful"`
+	Failed           int            `json:"failed"`
+	Mismatched       int            `json:"mismatched"`
+	MatchRate        float64        `json:"match_rate"`
+	AvgDriftScore    float64        `json:"avg_drift_score"`
+	AvgLatencyMs     float64        `json:"avg_latency_ms"`
+	Duration         time.Duration  `json:"duration"`
 	SeverityCounts   map[string]int `json:"severity_counts"`
 	TopDriftingPaths []PathDrift    `json:"top_drifting_paths,omitempty"`
 }

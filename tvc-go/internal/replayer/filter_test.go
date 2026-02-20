@@ -3,9 +3,9 @@ package replayer
 import (
 	"testing"
 
-	"github.com/tvc-org/tvc/internal/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tvc-org/tvc/internal/models"
 )
 
 func TestFilterTrafficForReplay_StripsSensitiveHeaders(t *testing.T) {

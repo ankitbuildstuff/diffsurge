@@ -25,16 +25,16 @@ type TrafficStore interface {
 }
 
 type TrafficCapture struct {
-	buffer    chan *models.TrafficLog
-	workers   int
-	store     TrafficStore
-	sampler   Sampler
-	log       *logger.Logger
-	wg        sync.WaitGroup
-	captured  atomic.Int64
-	dropped   atomic.Int64
-	mu        sync.Mutex
-	closed    bool
+	buffer   chan *models.TrafficLog
+	workers  int
+	store    TrafficStore
+	sampler  Sampler
+	log      *logger.Logger
+	wg       sync.WaitGroup
+	captured atomic.Int64
+	dropped  atomic.Int64
+	mu       sync.Mutex
+	closed   bool
 }
 
 func NewTrafficCapture(queueSize, workers int, store TrafficStore, sampler Sampler, log *logger.Logger) *TrafficCapture {
