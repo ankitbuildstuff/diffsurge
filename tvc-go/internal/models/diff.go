@@ -19,12 +19,12 @@ type SchemaVersion struct {
 }
 
 type SchemaDiff struct {
-	ID                uuid.UUID   `json:"id" db:"id"`
-	ProjectID         uuid.UUID   `json:"project_id" db:"project_id"`
-	FromVersionID     uuid.UUID   `json:"from_version_id" db:"from_version_id"`
-	ToVersionID       uuid.UUID   `json:"to_version_id" db:"to_version_id"`
-	DiffReport        interface{} `json:"diff_report" db:"diff_report"`
-	HasBreakingChanges bool       `json:"has_breaking_changes" db:"has_breaking_changes"`
-	BreakingChanges   interface{} `json:"breaking_changes,omitempty" db:"breaking_changes"`
-	CreatedAt         time.Time   `json:"created_at" db:"created_at"`
+	ID                 uuid.UUID   `json:"id" db:"id"`
+	ProjectID          uuid.UUID   `json:"project_id" db:"project_id"`
+	FromVersionID      uuid.UUID   `json:"from_version_id" db:"from_version_id"`
+	ToVersionID        uuid.UUID   `json:"to_version_id" db:"to_version_id"`
+	DiffReport         interface{} `json:"diff_report" db:"diff_report"`
+	HasBreakingChanges bool        `json:"has_breaking_changes" db:"has_breaking_changes"`
+	BreakingChanges    interface{} `json:"breaking_changes,omitempty" db:"breaking_changes"`
+	CreatedAt          time.Time   `json:"created_at" db:"created_at"`
 }

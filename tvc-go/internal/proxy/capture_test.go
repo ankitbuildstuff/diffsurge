@@ -47,7 +47,7 @@ func TestTrafficCapture_CapturesRequest(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"ok"}`))
+		_, _ = w.Write([]byte(`{"status":"ok"}`))
 	})
 
 	handler := capture.Middleware(backend)
@@ -110,7 +110,7 @@ func TestTrafficCapture_HandlesHighThroughput(t *testing.T) {
 	backend := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"ok":true}`))
+		_, _ = w.Write([]byte(`{"ok":true}`))
 	})
 
 	handler := capture.Middleware(backend)
@@ -179,7 +179,7 @@ func TestTrafficCapture_PreservesResponseToClient(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("X-Custom", "value")
 		w.WriteHeader(http.StatusOK)
-		w.Write(responseJSON)
+		_, _ = w.Write(responseJSON)
 	})
 
 	handler := capture.Middleware(backend)

@@ -1,0 +1,80 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/v1/users",
+    "status_code": 200,
+    "request_headers": {
+      "Accept": "application/json",
+      "Authorization": "Bearer test-token-123"
+    },
+    "response_body": {
+      "users": [
+        {"id": 1, "name": "Alice", "email": "alice@example.com"},
+        {"id": 2, "name": "Bob", "email": "bob@example.com"}
+      ],
+      "total": 2
+    },
+    "latency_ms": 45
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/users/1",
+    "status_code": 200,
+    "request_headers": {
+      "Accept": "application/json"
+    },
+    "response_body": {
+      "id": 1,
+      "name": "Alice",
+      "email": "alice@example.com",
+      "role": "admin"
+    },
+    "latency_ms": 12
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/users",
+    "status_code": 201,
+    "request_headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer test-token-123"
+    },
+    "request_body": {
+      "name": "Charlie",
+      "email": "charlie@example.com"
+    },
+    "response_body": {
+      "id": 3,
+      "name": "Charlie",
+      "email": "charlie@example.com"
+    },
+    "latency_ms": 89
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/users/1",
+    "status_code": 200,
+    "request_headers": {
+      "Content-Type": "application/json"
+    },
+    "request_body": {
+      "name": "Alice Updated"
+    },
+    "response_body": {
+      "id": 1,
+      "name": "Alice Updated",
+      "email": "alice@example.com"
+    },
+    "latency_ms": 34
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/users/2",
+    "status_code": 204,
+    "request_headers": {
+      "Authorization": "Bearer admin-token"
+    },
+    "response_body": null,
+    "latency_ms": 15
+  }
+]

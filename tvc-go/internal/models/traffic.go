@@ -68,16 +68,16 @@ type ReplaySession struct {
 }
 
 type ReplayResult struct {
-	ID                     uuid.UUID              `json:"id" db:"id"`
-	ReplaySessionID        uuid.UUID              `json:"replay_session_id" db:"replay_session_id"`
-	OriginalTrafficLogID   uuid.UUID              `json:"original_traffic_log_id" db:"original_traffic_log_id"`
-	TargetStatusCode       int                    `json:"target_status_code" db:"target_status_code"`
-	TargetResponseBody     map[string]interface{} `json:"target_response_body,omitempty" db:"target_response_body"`
-	TargetLatencyMs        int                    `json:"target_latency_ms" db:"target_latency_ms"`
-	StatusMatch            bool                   `json:"status_match" db:"status_match"`
-	BodyMatch              bool                   `json:"body_match" db:"body_match"`
-	DiffReport             map[string]interface{} `json:"diff_report,omitempty" db:"diff_report"`
-	Severity               string                 `json:"severity" db:"severity"`
-	ErrorMessage           string                 `json:"error_message,omitempty" db:"error_message"`
-	Timestamp              time.Time              `json:"timestamp" db:"timestamp"`
+	ID                   uuid.UUID              `json:"id" db:"id"`
+	ReplaySessionID      uuid.UUID              `json:"replay_session_id" db:"replay_session_id"`
+	OriginalTrafficLogID uuid.UUID              `json:"original_traffic_log_id" db:"original_traffic_log_id"`
+	TargetStatusCode     int                    `json:"target_status_code" db:"target_status_code"`
+	TargetResponseBody   map[string]interface{} `json:"target_response_body,omitempty" db:"target_response_body"`
+	TargetLatencyMs      int                    `json:"target_latency_ms" db:"target_latency_ms"`
+	StatusMatch          bool                   `json:"status_match" db:"status_match"`
+	BodyMatch            bool                   `json:"body_match" db:"body_match"`
+	DiffReport           map[string]interface{} `json:"diff_report,omitempty" db:"diff_report"`
+	Severity             string                 `json:"severity" db:"severity"`
+	ErrorMessage         string                 `json:"error_message,omitempty" db:"error_message"`
+	Timestamp            time.Time              `json:"timestamp" db:"timestamp"`
 }

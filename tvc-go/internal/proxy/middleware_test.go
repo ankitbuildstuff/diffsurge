@@ -106,7 +106,7 @@ func TestStatusWriter_DefaultsTo200(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sw := &statusWriter{ResponseWriter: rec, status: http.StatusOK}
 
-	sw.Write([]byte("hello"))
+	_, _ = sw.Write([]byte("hello"))
 
 	assert.Equal(t, http.StatusOK, sw.status)
 	assert.True(t, sw.wroteHeader)

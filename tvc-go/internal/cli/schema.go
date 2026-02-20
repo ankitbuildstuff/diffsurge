@@ -9,11 +9,11 @@ import (
 )
 
 var (
-	schemaFileOld     string
-	schemaFileNew     string
-	schemaFormat      string
-	schemaOutput      string
-	schemaBreakingOnly bool
+	schemaFileOld        string
+	schemaFileNew        string
+	schemaFormat         string
+	schemaOutput         string
+	schemaBreakingOnly   bool
 	schemaFailOnBreaking bool
 )
 
