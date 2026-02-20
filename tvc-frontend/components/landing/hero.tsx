@@ -27,8 +27,8 @@ function TerminalMockup() {
         {/* Terminal body */}
         <div className="bg-[#0a0a0f] p-5 font-mono text-[12px] leading-[1.8]">
           <p className="text-zinc-500">
-            <span className="text-teal-400">$</span> driftsurge schema diff --old
-            api-v1.yaml --new api-v2.yaml
+            <span className="text-teal-400">$</span> driftsurge schema diff
+            --old api-v1.yaml --new api-v2.yaml
           </p>
           <p className="mt-2.5 text-zinc-500">Comparing 47 endpoints…</p>
           <div className="mt-2.5 space-y-2">
@@ -76,7 +76,7 @@ export function Hero() {
       <div className="hero-mesh absolute inset-0 pointer-events-none" />
       <div className="bg-grid-pattern absolute inset-0 pointer-events-none" />
 
-      <div className="relative mx-auto grid max-w-[1200px] items-center gap-10 px-6 pt-24 pb-20 md:grid-cols-2 md:gap-16 md:pt-32 md:pb-28">
+      <div className="relative mx-auto grid max-w-[1200px] items-center gap-10 px-6 pt-24 pb-20 md:grid-cols-2 md:gap-16 md:pt-12 md:pb-28">
         {/* Left — copy */}
         <div>
           <FadeIn delay={0}>

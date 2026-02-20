@@ -5,6 +5,7 @@ go 1.22
 require (
 	github.com/getkin/kin-openapi v0.128.0
 	github.com/google/uuid v1.6.0
+	github.com/lib/pq v1.11.2
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0

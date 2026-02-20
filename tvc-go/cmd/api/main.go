@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/tvc-org/tvc/internal/api"
 	"github.com/tvc-org/tvc/internal/config"
 	"github.com/tvc-org/tvc/pkg/logger"
 )
@@ -18,7 +19,7 @@ func main() {
 
 	cfg, err := config.Load("")
 	if err != nil {
-		log.Warn().Err(err).Msg("Using default configuration")
+		log.Warn().Err(err).Msg("Config not found, using defaults")
 	}
 
 	port := 8081
@@ -27,23 +28,11 @@ func main() {
 	}
 	addr := fmt.Sprintf(":%d", port)
 
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, `{"status":"ok","version":"%s"}`, config.Version)
-	})
-
-	mux.HandleFunc("/api/v1/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, `{"message":"TVC API v1","version":"%s"}`, config.Version)
-	})
+	router := api.NewRouter()
 
 	server := &http.Server{
 		Addr:         addr,
-		Handler:      mux,
+		Handler:      router,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,

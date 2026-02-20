@@ -2,14 +2,13 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/tvc-org/tvc/internal/config"
+	"github.com/tvc-org/tvc/internal/proxy"
+	"github.com/tvc-org/tvc/internal/storage"
 	"github.com/tvc-org/tvc/pkg/logger"
 )
 
@@ -18,28 +17,48 @@ func main() {
 
 	cfg, err := config.Load("")
 	if err != nil {
-		log.Warn().Err(err).Msg("Using default configuration")
+		log.Warn().Err(err).Msg("Config not found, using defaults")
 	}
 
-	addr := ":8080"
-	if cfg != nil && cfg.Proxy.ListenAddr != "" {
-		addr = cfg.Proxy.ListenAddr
+	if cfg == nil {
+		cfg = &config.Config{}
+	}
+	if cfg.Proxy.ListenAddr == "" {
+		cfg.Proxy.ListenAddr = ":8080"
+	}
+	if cfg.Proxy.SamplingRate == 0 {
+		cfg.Proxy.SamplingRate = 1.0
+	}
+	if cfg.Proxy.Buffer.QueueSize == 0 {
+		cfg.Proxy.Buffer.QueueSize = 10000
+	}
+	if cfg.Proxy.Buffer.Workers == 0 {
+		cfg.Proxy.Buffer.Workers = 10
 	}
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, `{"status":"ok","version":"%s"}`, config.Version)
-	})
-
-	server := &http.Server{
-		Addr:         addr,
-		Handler:      mux,
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
-		IdleTimeout:  60 * time.Second,
+	var store proxy.TrafficStore
+	if cfg.Storage.PostgresURL != "" {
+		pgStore, err := storage.NewPostgresStore(cfg.Storage.PostgresURL)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to connect to database")
+		}
+		defer pgStore.Close()
+		store = pgStore
+		log.Info().Msg("Connected to PostgreSQL")
+	} else {
+		log.Warn().Msg("No database configured, traffic will be captured but not persisted")
 	}
+
+	sampler := proxy.NewPercentageSampler(cfg.Proxy.SamplingRate)
+	capture := proxy.NewTrafficCapture(
+		cfg.Proxy.Buffer.QueueSize,
+		cfg.Proxy.Buffer.Workers,
+		store,
+		sampler,
+		log,
+	)
+
+	srv := proxy.NewServer(&cfg.Proxy, log, capture)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -48,24 +67,10 @@ func main() {
 		sigCh := make(chan os.Signal, 1)
 		signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
 		<-sigCh
-
-		log.Info().Msg("Shutting down proxy server...")
 		cancel()
-
-		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer shutdownCancel()
-
-		if err := server.Shutdown(shutdownCtx); err != nil {
-			log.Error().Err(err).Msg("Proxy server forced shutdown")
-		}
 	}()
 
-	log.Info().Str("addr", addr).Msg("Starting TVC proxy server")
-
-	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatal().Err(err).Msg("Proxy server failed")
+	if err := srv.Start(ctx); err != nil {
+		log.Fatal().Err(err).Msg("Proxy server error")
 	}
-
-	<-ctx.Done()
-	log.Info().Msg("Proxy server stopped")
 }
