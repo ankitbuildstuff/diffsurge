@@ -26,12 +26,12 @@ type Config struct {
 }
 
 type Result struct {
-	OriginalLog    models.TrafficLog
-	StatusCode     int
-	ResponseBody   map[string]interface{}
+	OriginalLog     models.TrafficLog
+	StatusCode      int
+	ResponseBody    map[string]interface{}
 	ResponseHeaders map[string]interface{}
-	LatencyMs      int
-	Error          error
+	LatencyMs       int
+	Error           error
 }
 
 type Stats struct {
@@ -48,7 +48,6 @@ type Replayer struct {
 	log        *logger.Logger
 	stats      Stats
 	totalLatMs atomic.Int64
-	mu         sync.Mutex
 }
 
 func New(cfg Config, log *logger.Logger) *Replayer {
@@ -178,7 +177,7 @@ func (r *Replayer) replayOne(ctx context.Context, log models.TrafficLog) Result 
 
 func (r *Replayer) doRequest(ctx context.Context, log models.TrafficLog) (Result, error) {
 	url := r.config.TargetURL + log.Path
-	if log.QueryParams != nil && len(log.QueryParams) > 0 {
+	if len(log.QueryParams) > 0 {
 		url += "?"
 		first := true
 		for k, v := range log.QueryParams {
@@ -243,11 +242,11 @@ func (r *Replayer) doRequest(ctx context.Context, log models.TrafficLog) (Result
 	json.Unmarshal(respBody, &parsedBody) //nolint:errcheck
 
 	return Result{
-		OriginalLog: log,
-		StatusCode:  resp.StatusCode,
-		ResponseBody: parsedBody,
+		OriginalLog:     log,
+		StatusCode:      resp.StatusCode,
+		ResponseBody:    parsedBody,
 		ResponseHeaders: respHeaders,
-		LatencyMs:   int(latency.Milliseconds()),
+		LatencyMs:       int(latency.Milliseconds()),
 	}, nil
 }
 

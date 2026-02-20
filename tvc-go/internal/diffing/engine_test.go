@@ -222,7 +222,7 @@ func TestEngine_Compare_ComplexNested(t *testing.T) {
 	a := map[string]interface{}{
 		"users": []interface{}{
 			map[string]interface{}{
-				"name": "Alice",
+				"name":  "Alice",
 				"roles": []interface{}{"admin", "user"},
 			},
 		},
@@ -230,7 +230,7 @@ func TestEngine_Compare_ComplexNested(t *testing.T) {
 	b := map[string]interface{}{
 		"users": []interface{}{
 			map[string]interface{}{
-				"name": "Alice",
+				"name":  "Alice",
 				"roles": []interface{}{"admin", "moderator"},
 			},
 		},

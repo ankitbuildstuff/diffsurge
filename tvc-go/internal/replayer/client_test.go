@@ -21,7 +21,7 @@ func TestReplayer_BasicReplay(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"id": 1, "name": "Alice",
 		})
 	}))
@@ -91,7 +91,7 @@ func TestReplayer_RateLimiting(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		reqCount.Add(1)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{}`))
+		_, _ = w.Write([]byte(`{}`))
 	}))
 	defer server.Close()
 
@@ -145,12 +145,10 @@ func TestReplayer_ContextCancellation(t *testing.T) {
 
 	// Either returns error or some results have context errors
 	hasErrors := err != nil
-	if results != nil {
-		for _, res := range results {
-			if res.Error != nil {
-				hasErrors = true
-				break
-			}
+	for _, res := range results {
+		if res.Error != nil {
+			hasErrors = true
+			break
 		}
 	}
 	assert.True(t, hasErrors, "Should have errors from context cancellation")
@@ -161,7 +159,7 @@ func TestReplayer_PreservesHeaders(t *testing.T) {
 		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 		assert.Equal(t, "custom-value", r.Header.Get("X-Custom"))
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{}`))
+		_, _ = w.Write([]byte(`{}`))
 	}))
 	defer server.Close()
 
@@ -194,7 +192,7 @@ func TestReplayer_PreservesQueryParams(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "1", r.URL.Query().Get("page"))
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{}`))
+		_, _ = w.Write([]byte(`{}`))
 	}))
 	defer server.Close()
 
@@ -233,7 +231,7 @@ func TestReplayer_EmptyTraffic(t *testing.T) {
 func TestReplayer_ServerErrors(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error":"internal server error"}`))
+		_, _ = w.Write([]byte(`{"error":"internal server error"}`))
 	}))
 	defer server.Close()
 

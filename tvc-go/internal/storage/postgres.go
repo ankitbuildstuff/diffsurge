@@ -153,11 +153,11 @@ func (s *PostgresStore) FetchTraffic(ctx context.Context, filter TrafficFilter) 
 			return nil, fmt.Errorf("scanning traffic log: %w", err)
 		}
 
-		json.Unmarshal(queryParams, &log.QueryParams)   //nolint:errcheck
-		json.Unmarshal(reqHeaders, &log.RequestHeaders)  //nolint:errcheck
-		json.Unmarshal(reqBody, &log.RequestBody)        //nolint:errcheck
+		json.Unmarshal(queryParams, &log.QueryParams)     //nolint:errcheck
+		json.Unmarshal(reqHeaders, &log.RequestHeaders)   //nolint:errcheck
+		json.Unmarshal(reqBody, &log.RequestBody)         //nolint:errcheck
 		json.Unmarshal(respHeaders, &log.ResponseHeaders) //nolint:errcheck
-		json.Unmarshal(respBody, &log.ResponseBody)      //nolint:errcheck
+		json.Unmarshal(respBody, &log.ResponseBody)       //nolint:errcheck
 
 		logs = append(logs, log)
 	}

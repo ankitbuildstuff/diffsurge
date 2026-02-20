@@ -184,4 +184,3 @@ func pingTarget(targetURL string) error {
 	resp.Body.Close()
 	return nil
 }
-
