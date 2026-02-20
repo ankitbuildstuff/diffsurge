@@ -1,0 +1,33 @@
+{
+  "name": "TVC API",
+  "version": "2.0.0",
+  "endpoints": [
+    {
+      "path": "/api/v1/users",
+      "method": "GET",
+      "description": "List all users with pagination"
+    },
+    {
+      "path": "/api/v1/users/:id",
+      "method": "GET",
+      "description": "Get user by ID"
+    },
+    {
+      "path": "/api/v1/users",
+      "method": "POST",
+      "description": "Create a new user"
+    }
+  ],
+  "config": {
+    "timeout": 60,
+    "retries": 5,
+    "cache": {
+      "enabled": true,
+      "ttl": 600
+    },
+    "rateLimit": {
+      "enabled": true,
+      "maxRequests": 100
+    }
+  }
+}

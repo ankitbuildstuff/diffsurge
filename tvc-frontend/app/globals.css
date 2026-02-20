@@ -8,26 +8,21 @@ html {
 /* ─── Design tokens ─── */
 :root {
   --background: #ffffff;
-  --background-subtle: #f9fafb;
-  --foreground: #111827;
-  --muted: #6b7280;
-  --muted-foreground: #9ca3af;
-  --border: #e5e7eb;
-  --border-subtle: #f3f4f6;
-  --surface: #f9fafb;
+  --foreground: #09090b;
+  --muted: #71717a;
+  --border: #e4e4e7;
+  --surface: #fafafa;
   --accent: #0d9488;
-  --accent-light: #14b8a6;
-  --radius: 14px;
+  --accent-light: #2dd4bf;
+  --violet: #7c3aed;
+  --indigo: #6366f1;
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-background-subtle: var(--background-subtle);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
-  --color-border-subtle: var(--border-subtle);
   --color-surface: var(--surface);
   --color-accent: var(--accent);
   --color-accent-light: var(--accent-light);
@@ -35,18 +30,12 @@ html {
   --font-mono: var(--font-geist-mono);
 }
 
-/* ─── Base reset ─── */
-* {
-  border-color: var(--border);
-}
-
-html {
-  scroll-behavior: smooth;
-}
+* { border-color: var(--border); }
+html { scroll-behavior: smooth; }
 
 body {
   background-color: #ffffff;
-  color: #111827;
+  color: #09090b;
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -56,10 +45,105 @@ body {
   background: color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
-/* ─── Reusable utilities ─── */
-.text-gradient {
-  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 50%, #10b981 100%);
+/* ─── Animated gradient text ─── */
+.text-gradient-animated {
+  background: linear-gradient(
+    90deg,
+    #0d9488 0%,
+    #2dd4bf 25%,
+    #6366f1 50%,
+    #7c3aed 75%,
+    #0d9488 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 6s ease infinite;
+}
+
+.text-gradient-static {
+  background: linear-gradient(135deg, #0d9488 0%, #2dd4bf 50%, #6366f1 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* ─── Gradient button ─── */
+.btn-gradient {
+  background: linear-gradient(135deg, #0d9488 0%, #0891b2 50%, #6366f1 100%);
+  background-size: 200% auto;
+  transition: background-position 0.4s ease, transform 0.15s ease, box-shadow 0.3s ease;
+}
+.btn-gradient:hover {
+  background-position: right center;
+  box-shadow: 0 4px 24px rgba(13, 148, 136, 0.3), 0 0 0 1px rgba(13, 148, 136, 0.1);
+}
+
+/* ─── Grid pattern ─── */
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(to right, rgba(0,0,0,0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.02) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ─── Hero mesh gradient ─── */
+.hero-mesh {
+  background:
+    radial-gradient(at 20% 30%, rgba(13,148,136,0.10) 0, transparent 50%),
+    radial-gradient(at 80% 20%, rgba(99,102,241,0.08) 0, transparent 50%),
+    radial-gradient(at 50% 80%, rgba(124,58,237,0.05) 0, transparent 50%),
+    radial-gradient(at 90% 80%, rgba(45,212,191,0.06) 0, transparent 50%);
+}
+
+/* ─── Animations ─── */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 200% center; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes border-rotate {
+  to { --border-angle: 360deg; }
+}
+
+.animate-float { animation: float 5s ease-in-out infinite; }
+.animate-pulse-soft { animation: pulse-soft 3s ease-in-out infinite; }
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* ─── Spotlight card ─── */
+.spotlight-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid #e4e4e7;
+  background: #ffffff;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.spotlight-card:hover {
+  border-color: #d4d4d8;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.06);
+}
+
+/* ─── Bento sizing helpers ─── */
+.bento-tall { grid-row: span 2; }
+.bento-wide { grid-column: span 2; }

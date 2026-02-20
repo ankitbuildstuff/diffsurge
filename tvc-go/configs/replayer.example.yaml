@@ -1,0 +1,12 @@
+replayer:
+  workers: 10
+  rate_limit: 100
+  timeout: "30s"
+
+storage:
+  postgres_url: "postgres://tvc:tvc_dev_pass@localhost:5432/tvc_dev?sslmode=disable"
+  redis_url: "redis://localhost:6379"
+
+log:
+  level: "info"
+  format: "json"

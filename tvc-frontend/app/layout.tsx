@@ -13,16 +13,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Driftguard — Never ship a breaking API change again",
+  title: "Driftsurge — Catch breaking API changes before your users do",
   description:
-    "Driftguard captures, versions, and replays your API traffic against new deployments — catching breaking changes before your users do.",
+    "Driftsurge captures production traffic, replays it against new deployments, and surfaces breaking changes before a single user is affected. Schema diffing, traffic replay, and drift reports in one CLI.",
   keywords: [
     "API testing",
+    "API breaking changes",
     "traffic replay",
     "schema diffing",
-    "breaking changes",
     "API versioning",
+    "OpenAPI diff",
+    "GraphQL breaking changes",
     "developer tools",
+    "CI/CD integration",
+    "API regression testing",
   ],
 };
 
@@ -34,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth" style={{ colorScheme: "light" }}>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-white text-gray-900`}
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-white text-zinc-950`}
       >
         {children}
       </body>

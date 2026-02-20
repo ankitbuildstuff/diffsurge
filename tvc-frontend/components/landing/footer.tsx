@@ -27,52 +27,46 @@ const footerLinks = {
 
 export function Footer() {
   return (
-    <footer className="border-t border-gray-100 bg-white">
+    <footer className="border-t border-zinc-800 bg-zinc-950">
       <div className="mx-auto max-w-[1200px] px-6 py-14">
         <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-5">
-          {/* Brand */}
           <div className="md:col-span-1">
             <a href="/" className="flex items-center gap-2">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 28 28"
-                fill="none"
-                className="text-gray-900"
-              >
-                <rect width="28" height="28" rx="8" fill="currentColor" />
+              <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
+                <rect width="28" height="28" rx="7" fill="#fafafa" />
                 <path
                   d="M8 10L14 7L20 10V18L14 21L8 18V10Z"
-                  stroke="white"
+                  stroke="#09090b"
                   strokeWidth="1.5"
                   strokeLinejoin="round"
                 />
-                <path d="M14 14V21" stroke="white" strokeWidth="1.5" />
-                <path d="M8 10L14 14L20 10" stroke="white" strokeWidth="1.5" />
+                <path d="M14 14V21" stroke="#09090b" strokeWidth="1.5" />
+                <path d="M8 10L14 14L20 10" stroke="#09090b" strokeWidth="1.5" />
               </svg>
-              <span className="text-[14px] font-semibold tracking-tight text-gray-900">
+              <span className="text-[14px] font-semibold text-zinc-100">
                 {siteConfig.name}
               </span>
             </a>
-            <p className="mt-3 text-[13px] leading-relaxed text-gray-400">
-              Guardrails for your APIs.
+            <p className="mt-3 text-[12px] leading-relaxed text-zinc-500">
+              Catch breaking API changes
+              <br />
+              before your users do.
             </p>
           </div>
 
-          {/* Link columns */}
-          {Object.entries(footerLinks).map(([category, links]) => (
-            <div key={category}>
-              <h4 className="text-[12px] font-semibold uppercase tracking-wider text-gray-400">
-                {category}
+          {Object.entries(footerLinks).map(([cat, links]) => (
+            <div key={cat}>
+              <h4 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                {cat}
               </h4>
-              <ul className="mt-4 space-y-2.5">
-                {links.map((link) => (
-                  <li key={link.label}>
+              <ul className="mt-4 space-y-2">
+                {links.map((l) => (
+                  <li key={l.label}>
                     <a
-                      href={link.href}
-                      className="text-[13px] text-gray-500 transition-colors hover:text-gray-900"
+                      href={l.href}
+                      className="text-[13px] text-zinc-400 transition-colors hover:text-zinc-100"
                     >
-                      {link.label}
+                      {l.label}
                     </a>
                   </li>
                 ))}
@@ -81,21 +75,20 @@ export function Footer() {
           ))}
         </div>
 
-        {/* Bottom */}
-        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-gray-100 pt-7 sm:flex-row">
-          <p className="text-[12px] text-gray-400">
-            &copy; {new Date().getFullYear()} Driftguard. All rights reserved.
+        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-zinc-800 pt-7 sm:flex-row">
+          <p className="text-[11px] text-zinc-600">
+            &copy; {new Date().getFullYear()} Driftsurge. All rights reserved.
           </p>
           <div className="flex gap-5">
             <a
               href={siteConfig.github}
-              className="text-[12px] text-gray-400 transition-colors hover:text-gray-900"
+              className="text-[11px] text-zinc-600 hover:text-zinc-300 transition-colors"
             >
               GitHub
             </a>
             <a
-              href="https://x.com/driftguard"
-              className="text-[12px] text-gray-400 transition-colors hover:text-gray-900"
+              href="https://x.com/driftsurge"
+              className="text-[11px] text-zinc-600 hover:text-zinc-300 transition-colors"
             >
               X / Twitter
             </a>

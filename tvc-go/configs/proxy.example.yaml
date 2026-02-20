@@ -1,0 +1,24 @@
+proxy:
+  listen_addr: ":8080"
+  sampling_rate: 0.1
+
+  routes:
+    - path_prefix: "/api/v1/users"
+      target: "http://localhost:9000"
+      pii_detection: true
+
+    - path_prefix: "/api/v1/orders"
+      target: "http://localhost:9001"
+      sampling_rate: 1.0
+
+  buffer:
+    queue_size: 10000
+    workers: 20
+
+storage:
+  postgres_url: "postgres://tvc:tvc_dev_pass@localhost:5432/tvc_dev?sslmode=disable"
+  redis_url: "redis://localhost:6379"
+
+log:
+  level: "info"
+  format: "json"
