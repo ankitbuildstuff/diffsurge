@@ -491,15 +491,18 @@ func (s *PostgresStore) FetchTraffic(ctx context.Context, filter TrafficFilter) 
 	for rows.Next() {
 		var log models.TrafficLog
 		var queryParams, reqHeaders, reqBody, respHeaders, respBody []byte
+		var ipAddress, userAgent sql.NullString
 
 		err := rows.Scan(
 			&log.ID, &log.ProjectID, &log.EnvironmentID, &log.Method, &log.Path,
 			&queryParams, &reqHeaders, &reqBody, &log.StatusCode, &respHeaders, &respBody,
-			&log.Timestamp, &log.LatencyMs, &log.IPAddress, &log.UserAgent, &log.PIIRedacted,
+			&log.Timestamp, &log.LatencyMs, &ipAddress, &userAgent, &log.PIIRedacted,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("scanning traffic log: %w", err)
 		}
+		log.IPAddress = ipAddress.String
+		log.UserAgent = userAgent.String
 
 		json.Unmarshal(queryParams, &log.QueryParams)     //nolint:errcheck
 		json.Unmarshal(reqHeaders, &log.RequestHeaders)   //nolint:errcheck
