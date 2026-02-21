@@ -101,7 +101,7 @@ func TestRedisStore_MultipleTrafficLogs(t *testing.T) {
 	assert.Equal(t, int64(3), length)
 
 	// Dequeue in FIFO order (first in, first out)
-	for i := len(logs) - 1; i >= 0; i-- {
+	for i := 0; i < len(logs); i++ {
 		retrieved, err := store.DequeueTraffic(ctx, 1*time.Second)
 		require.NoError(t, err)
 		require.NotNil(t, retrieved)
@@ -246,12 +246,12 @@ func TestRedisStore_RateLimit(t *testing.T) {
 }
 
 func TestRedisStore_RateLimitSlidingWindow(t *testing.T) {
-	store, mr := setupTestRedis(t)
+	store, _ := setupTestRedis(t)
 	ctx := context.Background()
 
 	key := "test:sliding"
 	limit := int64(3)
-	window := 1 * time.Second
+	window := 200 * time.Millisecond
 
 	// Use 3 requests
 	for i := 0; i < 3; i++ {
@@ -265,10 +265,10 @@ func TestRedisStore_RateLimitSlidingWindow(t *testing.T) {
 	require.NoError(t, err)
 	assert.False(t, allowed)
 
-	// Fast-forward past the window
-	mr.FastForward(1100 * time.Millisecond)
+	// Wait for window to pass (use real sleep instead of FastForward)
+	time.Sleep(250 * time.Millisecond)
 
-	// Should allow new requests now
+	// Should allow new requests now (old entries cleaned up)
 	allowed, count, err := store.CheckRateLimit(ctx, key, limit, window)
 	require.NoError(t, err)
 	assert.True(t, allowed)

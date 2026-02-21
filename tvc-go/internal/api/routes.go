@@ -25,6 +25,7 @@ func NewRouter(deps ServerDeps) http.Handler {
 	replays := handlers.NewReplayHandler(deps.Store, deps.Log)
 	schemas := handlers.NewSchemaHandler(deps.Store, deps.Log)
 	orgs := handlers.NewOrganizationHandler(deps.Store, deps.Log)
+	apiKeys := handlers.NewAPIKeyHandler(deps.Store, deps.Log)
 	health := handlers.NewHealthHandler(deps.Store)
 
 	// Health endpoints (no auth)
@@ -50,6 +51,8 @@ func NewRouter(deps ServerDeps) http.Handler {
 	mux.HandleFunc("GET /api/v1/projects/{id}/environments", environments.List)
 	mux.HandleFunc("POST /api/v1/projects/{id}/environments", environments.Create)
 	mux.HandleFunc("GET /api/v1/projects/{id}/environments/{envId}", environments.Get)
+	mux.HandleFunc("PUT /api/v1/projects/{id}/environments/{envId}", environments.Update)
+	mux.HandleFunc("DELETE /api/v1/projects/{id}/environments/{envId}", environments.Delete)
 
 	// Replays
 	mux.HandleFunc("GET /api/v1/projects/{id}/replays", replays.List)
@@ -68,17 +71,26 @@ func NewRouter(deps ServerDeps) http.Handler {
 	mux.HandleFunc("GET /api/v1/organizations", orgs.List)
 	mux.HandleFunc("POST /api/v1/organizations", orgs.Create)
 	mux.HandleFunc("GET /api/v1/organizations/{id}", orgs.Get)
+	mux.HandleFunc("PUT /api/v1/organizations/{id}", orgs.Update)
+	mux.HandleFunc("DELETE /api/v1/organizations/{id}", orgs.Delete)
+	mux.HandleFunc("GET /api/v1/organizations/{id}/members", orgs.ListMembers)
+	mux.HandleFunc("POST /api/v1/organizations/{id}/members", orgs.AddMember)
+	mux.HandleFunc("DELETE /api/v1/organizations/{id}/members/{userId}", orgs.RemoveMember)
+
+	// API Keys
+	mux.HandleFunc("GET /api/v1/organizations/{id}/api-keys", apiKeys.List)
+	mux.HandleFunc("POST /api/v1/organizations/{id}/api-keys", apiKeys.Create)
+	mux.HandleFunc("DELETE /api/v1/organizations/{id}/api-keys/{keyId}", apiKeys.Delete)
 
 	// Build middleware chain (applied in reverse order)
-	auth := middleware.NewAuth(deps.AuthConfig, deps.Log)
+	auth := middleware.NewAuth(deps.AuthConfig, deps.Log, deps.Store)
 	var handler http.Handler = mux
-
-		"/metrics",
-	)
-	handler = middleware.PrometheusMiddleware()(handlerhandler = middleware.AuthExempt(auth, handler,
+	handler = middleware.AuthExempt(auth, handler,
 		"/api/v1/health",
 		"/api/v1/ready",
+		"/metrics",
 	)
+	handler = middleware.PrometheusMiddleware()(handler)
 	handler = middleware.Recovery(deps.Log)(handler)
 	handler = middleware.Logging(deps.Log)(handler)
 	handler = middleware.RequestID(handler)

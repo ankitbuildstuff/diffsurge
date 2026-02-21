@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/tvc-org/tvc/pkg/logger"
@@ -25,7 +26,7 @@ func (m *MockRateLimiter) CheckRateLimit(ctx context.Context, key string, limit 
 func TestRateLimitMiddleware_AllowsWithinLimit(t *testing.T) {
 	limiter := new(MockRateLimiter)
 	config := DefaultRateLimitConfig()
-	log := logger.NewLogger("error", "json")
+	log := logger.New("error", "json")
 
 	// Mock rate limiter to allow request (current: 1, limit: 100)
 	limiter.On("CheckRateLimit", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
@@ -40,7 +41,8 @@ func TestRateLimitMiddleware_AllowsWithinLimit(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/api/v1/projects", nil)
 	// Add org context
-	ctx := context.WithValue(req.Context(), ContextKeyOrgID, "org-123")
+	userID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440001")
+	ctx := context.WithValue(req.Context(), UserIDKey, userID)
 	ctx = context.WithValue(ctx, ContextKeyTier, "pro")
 	req = req.WithContext(ctx)
 
@@ -59,7 +61,7 @@ func TestRateLimitMiddleware_AllowsWithinLimit(t *testing.T) {
 func TestRateLimitMiddleware_BlocksWhenExceeded(t *testing.T) {
 	limiter := new(MockRateLimiter)
 	config := DefaultRateLimitConfig()
-	log := logger.NewLogger("error", "json")
+	log := logger.New("error", "json")
 
 	// Mock rate limiter to deny request (current: 101, limit: 100)
 	limiter.On("CheckRateLimit", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
@@ -73,7 +75,8 @@ func TestRateLimitMiddleware_BlocksWhenExceeded(t *testing.T) {
 	}))
 
 	req := httptest.NewRequest("GET", "/api/v1/projects", nil)
-	ctx := context.WithValue(req.Context(), ContextKeyOrgID, "org-123")
+	userID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440002")
+	ctx := context.WithValue(req.Context(), UserIDKey, userID)
 	ctx = context.WithValue(ctx, ContextKeyTier, "free")
 	req = req.WithContext(ctx)
 
@@ -116,7 +119,7 @@ func TestRateLimitMiddleware_TierSpecificLimits(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			limiter := new(MockRateLimiter)
 			config := DefaultRateLimitConfig()
-			log := logger.NewLogger("error", "json")
+			log := logger.New("error", "json")
 
 			var capturedLimit int64
 			limiter.On("CheckRateLimit", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
@@ -132,7 +135,8 @@ func TestRateLimitMiddleware_TierSpecificLimits(t *testing.T) {
 			}))
 
 			req := httptest.NewRequest("GET", "/api/v1/projects", nil)
-			ctx := context.WithValue(req.Context(), ContextKeyOrgID, "org-123")
+			userID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440003")
+			ctx := context.WithValue(req.Context(), UserIDKey, userID)
 			ctx = context.WithValue(ctx, ContextKeyTier, tt.tier)
 			req = req.WithContext(ctx)
 
@@ -147,7 +151,7 @@ func TestRateLimitMiddleware_TierSpecificLimits(t *testing.T) {
 func TestRateLimitMiddleware_AuthEndpointsStricterLimit(t *testing.T) {
 	limiter := new(MockRateLimiter)
 	config := DefaultRateLimitConfig()
-	log := logger.NewLogger("error", "json")
+	log := logger.New("error", "json")
 
 	var capturedKey string
 	var capturedLimit int64
@@ -179,7 +183,7 @@ func TestRateLimitMiddleware_AuthEndpointsStricterLimit(t *testing.T) {
 func TestRateLimitMiddleware_SkipsHealthChecks(t *testing.T) {
 	limiter := new(MockRateLimiter)
 	config := DefaultRateLimitConfig()
-	log := logger.NewLogger("error", "json")
+	log := logger.New("error", "json")
 
 	middleware := RateLimitMiddleware(limiter, config, log)
 	
@@ -255,7 +259,7 @@ func TestGetLimitForTier(t *testing.T) {
 func TestRateLimitMiddleware_UnauthenticatedRequest(t *testing.T) {
 	limiter := new(MockRateLimiter)
 	config := DefaultRateLimitConfig()
-	log := logger.NewLogger("error", "json")
+	log := logger.New("error", "json")
 
 	var capturedKey string
 	var capturedLimit int64
@@ -287,7 +291,7 @@ func TestRateLimitMiddleware_UnauthenticatedRequest(t *testing.T) {
 func TestRateLimitMiddleware_SchemaUpload(t *testing.T) {
 	limiter := new(MockRateLimiter)
 	config := DefaultRateLimitConfig()
-	log := logger.NewLogger("error", "json")
+	log := logger.New("error", "json")
 
 	var capturedLimit int64
 	var capturedWindow time.Duration
@@ -306,7 +310,8 @@ func TestRateLimitMiddleware_SchemaUpload(t *testing.T) {
 	}))
 
 	req := httptest.NewRequest("POST", "/api/v1/projects/123/schemas", nil)
-	ctx := context.WithValue(req.Context(), ContextKeyUserID, "user-456")
+	userID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440004")
+	ctx := context.WithValue(req.Context(), UserIDKey, userID)
 	req = req.WithContext(ctx)
 
 	w := httptest.NewRecorder()
@@ -320,7 +325,7 @@ func TestRateLimitMiddleware_SchemaUpload(t *testing.T) {
 func TestRateLimitMiddleware_ReplayStart(t *testing.T) {
 	limiter := new(MockRateLimiter)
 	config := DefaultRateLimitConfig()
-	log := logger.NewLogger("error", "json")
+	log := logger.New("error", "json")
 
 	var capturedLimit int64
 
@@ -337,7 +342,8 @@ func TestRateLimitMiddleware_ReplayStart(t *testing.T) {
 	}))
 
 	req := httptest.NewRequest("POST", "/api/v1/projects/123/replays/456/start", nil)
-	ctx := context.WithValue(req.Context(), ContextKeyUserID, "user-789")
+	userID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440005")
+	ctx := context.WithValue(req.Context(), UserIDKey, userID)
 	req = req.WithContext(ctx)
 
 	w := httptest.NewRecorder()
@@ -351,7 +357,7 @@ func TestRateLimitMiddleware_ReplayStart(t *testing.T) {
 func BenchmarkRateLimitMiddleware(b *testing.B) {
 	limiter := new(MockRateLimiter)
 	config := DefaultRateLimitConfig()
-	log := logger.NewLogger("error", "json")
+	log := logger.New("error", "json")
 
 	limiter.On("CheckRateLimit", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 		Return(true, int64(1), nil)
@@ -363,7 +369,8 @@ func BenchmarkRateLimitMiddleware(b *testing.B) {
 	}))
 
 	req := httptest.NewRequest("GET", "/api/v1/projects", nil)
-	ctx := context.WithValue(req.Context(), ContextKeyOrgID, "org-123")
+	userID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440006")
+	ctx := context.WithValue(req.Context(), UserIDKey, userID)
 	ctx = context.WithValue(ctx, ContextKeyTier, "pro")
 	req = req.WithContext(ctx)
 

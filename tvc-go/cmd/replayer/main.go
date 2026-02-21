@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"sync"
@@ -26,14 +25,14 @@ const (
 )
 
 func main() {
-	log := logger.NewLogger("info", "json")
+	log := logger.New("info", "json")
 	
 	log.Info().
 		Str("version", config.Version).
 		Msg("TVC Replay Engine starting")
 
 	// Load configuration
-	cfg, err := config.LoadConfig("")
+	cfg, err := config.Load("")
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to load configuration")
 	}
@@ -65,18 +64,15 @@ func main() {
 	}
 
 	// Create replayer components
-	replayEngine := replayer.NewReplayer(
-		workerPoolSize,
-		requestTimeout,
-		maxRetries,
-		log,
-	)
-	defer replayEngine.Stop()
+	replayEngine := replayer.New(replayer.Config{
+		Workers:    workerPoolSize,
+		Timeout:    requestTimeout,
+		MaxRetries: maxRetries,
+	}, log)
 
-	comparer := replayer.NewComparer(&replayer.ComparisonConfig{
-		IgnorePaths:       []string{"metadata.timestamp", "metadata.request_id"},
-		StrictArrayOrder:  false,
-		IgnoreExtraFields: false,
+	comparer := replayer.NewComparer(replayer.ComparerConfig{
+		IgnorePaths:      []string{"metadata.timestamp", "metadata.request_id"},
+		TreatArraysAsSet: true,
 	})
 
 	sessionRunner := replayer.NewSessionRunner(replayEngine, comparer, repo, log)
@@ -169,8 +165,8 @@ func (s *ReplayerService) checkAndExecute(ctx context.Context) {
 
 	s.log.Info().Int("count", len(sessions)).Msg("Found pending replay sessions")
 
-	for _, session := range sessions {
-		s.executeSession(ctx, session)
+	for i := range sessions {
+		s.executeSession(ctx, &sessions[i])
 	}
 }
 
@@ -215,16 +211,14 @@ func (s *ReplayerService) executeSession(parentCtx context.Context, session *sto
 			SourceEnvID: session.SourceEnvID,
 			TargetURL:   session.TargetURL,
 			Filter: storage.TrafficFilter{
-				ProjectID:   session.ProjectID,
+				ProjectID:     session.ProjectID,
 				EnvironmentID: &session.SourceEnvID,
-				StartTime:   session.TrafficStartTime,
-				EndTime:     session.TrafficEndTime,
-				Limit:       session.SampleSize,
+				StartTime:     session.TrafficStartTime,
+				EndTime:       session.TrafficEndTime,
+				Limit:         session.SampleSize,
 			},
 			FilterConfig: replayer.FilterConfig{
-				RemoveAuthHeaders:    true,
-				RemoveInternalHeaders: true,
-				UpdateHostHeader:     true,
+				StripSensitiveHeaders: true,
 			},
 		}
 
@@ -250,9 +244,9 @@ func (s *ReplayerService) executeSession(parentCtx context.Context, session *sto
 		s.log.Info().
 			Str("session_id", sessionID).
 			Int("total", result.Summary.TotalRequests).
-			Int("successful", result.Summary.SuccessfulRequests).
-			Int("failed", result.Summary.FailedRequests).
-			Int("mismatched", result.Summary.MismatchedResponses).
+			Int("successful", result.Summary.Successful).
+			Int("failed", result.Summary.Failed).
+			Int("mismatched", result.Summary.Mismatched).
 			Msg("Session completed successfully")
 
 		// Publish completion event if Redis is available

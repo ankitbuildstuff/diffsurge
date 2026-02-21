@@ -30,6 +30,8 @@ import { LoadingPage } from "@/components/ui/loading-spinner";
 import { CopyButton } from "@/components/ui/copy-button";
 import { useState } from "react";
 import Link from "next/link";
+import { environmentsApi } from "@/lib/api/environments";
+import { toast } from "sonner";
 
 interface Environment {
   id: string;
@@ -48,42 +50,43 @@ function EnvironmentsPageContent() {
   const [createOpen, setCreateOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
-    slug: "",
     base_url: "",
-    description: "",
+    is_source: false,
   });
 
-  // TODO: Replace with actual API call
   const { data: environments, isLoading } = useQuery({
     queryKey: ["environments", projectId],
     queryFn: async () => {
-      // Placeholder - replace with actual API
-      return [] as Environment[];
+      return await environmentsApi.list(projectId);
     },
     enabled: !!projectId,
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      // TODO: Replace with actual API call
-      console.log("Creating environment:", data);
-      return { success: true };
+      return await environmentsApi.create(projectId, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["environments"] });
+      queryClient.invalidateQueries({ queryKey: ["environments", projectId] });
       setCreateOpen(false);
-      setFormData({ name: "", slug: "", base_url: "", description: "" });
+      setFormData({ name: "", base_url: "", is_source: false });
+      toast.success("Environment created successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to create environment");
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (envId: string) => {
-      // TODO: Replace with actual API call
-      console.log("Deleting environment:", envId);
-      return { success: true };
+      return await environmentsApi.delete(projectId, envId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["environments"] });
+      queryClient.invalidateQueries({ queryKey: ["environments", projectId] });
+      toast.success("Environment deleted successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to delete environment");
     },
   });
 
@@ -93,8 +96,7 @@ function EnvironmentsPageContent() {
   };
 
   const handleNameChange = (name: string) => {
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    setFormData({ ...formData, name, slug });
+    setFormData({ ...formData, name });
   };
 
   if (isLoading) {
@@ -154,23 +156,7 @@ function EnvironmentsPageContent() {
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="slug" required>
-                    Slug
-                  </Label>
-                  <Input
-                    id="slug"
-                    placeholder="staging"
-                    value={formData.slug}
-                    onChange={(e) =>
-                      setFormData({ ...formData, slug: e.target.value })
-                    }
-                    required
-                  />
-                  <p className="text-xs text-zinc-500">
-                    Used in URLs and API calls
-                  </p>
-                </div>
+                <div className="space-y-2"></div>
                 <div className="space-y-2">
                   <Label htmlFor="base_url" required>
                     Base URL
@@ -184,17 +170,6 @@ function EnvironmentsPageContent() {
                       setFormData({ ...formData, base_url: e.target.value })
                     }
                     required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Staging environment for QA testing"
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
                   />
                 </div>
               </div>
@@ -211,7 +186,6 @@ function EnvironmentsPageContent() {
                   disabled={
                     createMutation.isPending ||
                     !formData.name ||
-                    !formData.slug ||
                     !formData.base_url
                   }
                 >

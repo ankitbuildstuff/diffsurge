@@ -133,3 +133,122 @@ func (h *EnvironmentHandler) Get(w http.ResponseWriter, r *http.Request) {
 		"data": env,
 	})
 }
+
+type updateEnvironmentRequest struct {
+	Name     string `json:"name"`
+	BaseURL  string `json:"base_url"`
+	IsSource *bool  `json:"is_source"`
+}
+
+func (h *EnvironmentHandler) Update(w http.ResponseWriter, r *http.Request) {
+	projectID, err := request.PathUUID(r, "id")
+	if err != nil {
+		response.BadRequest(w, err.Error())
+		return
+	}
+
+	envID, err := request.PathUUID(r, "envId")
+	if err != nil {
+		response.BadRequest(w, err.Error())
+		return
+	}
+
+	env, err := h.store.GetEnvironment(r.Context(), envID)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			response.NotFound(w, "Environment")
+			return
+		}
+		h.log.Error().Err(err).Msg("failed to get environment")
+		response.InternalError(w)
+		return
+	}
+
+	// Verify environment belongs to the project
+	if env.ProjectID != projectID {
+		response.NotFound(w, "Environment")
+		return
+	}
+
+	var req updateEnvironmentRequest
+	if err := request.ParseJSON(r, 0, &req); err != nil {
+		response.BadRequest(w, err.Error())
+		return
+	}
+
+	var errs []response.FieldError
+	if req.Name != "" {
+		if len(req.Name) > 100 {
+			errs = append(errs, response.FieldError{Field: "name", Message: "Name must be 1-100 characters"})
+		} else {
+			env.Name = req.Name
+		}
+	}
+	if req.BaseURL != "" {
+		if _, err := url.ParseRequestURI(req.BaseURL); err != nil {
+			errs = append(errs, response.FieldError{Field: "base_url", Message: "Base URL must be a valid URL"})
+		} else {
+			env.BaseURL = strings.TrimRight(req.BaseURL, "/")
+		}
+	}
+	if req.IsSource != nil {
+		env.IsSource = *req.IsSource
+	}
+	if len(errs) > 0 {
+		response.ValidationError(w, errs)
+		return
+	}
+
+	if err := h.store.UpdateEnvironment(r.Context(), env); err != nil {
+		if strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "unique") {
+			response.Conflict(w, "An environment with this name already exists in the project")
+			return
+		}
+		h.log.Error().Err(err).Msg("failed to update environment")
+		response.InternalError(w)
+		return
+	}
+
+	response.JSON(w, http.StatusOK, map[string]interface{}{
+		"data": env,
+	})
+}
+
+func (h *EnvironmentHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	projectID, err := request.PathUUID(r, "id")
+	if err != nil {
+		response.BadRequest(w, err.Error())
+		return
+	}
+
+	envID, err := request.PathUUID(r, "envId")
+	if err != nil {
+		response.BadRequest(w, err.Error())
+		return
+	}
+
+	env, err := h.store.GetEnvironment(r.Context(), envID)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			response.NotFound(w, "Environment")
+			return
+		}
+		h.log.Error().Err(err).Msg("failed to get environment")
+		response.InternalError(w)
+		return
+	}
+
+	// Verify environment belongs to the project
+	if env.ProjectID != projectID {
+		response.NotFound(w, "Environment")
+		return
+	}
+
+	if err := h.store.DeleteEnvironment(r.Context(), envID); err != nil {
+		h.log.Error().Err(err).Msg("failed to delete environment")
+		response.InternalError(w)
+		return
+	}
+
+	response.NoContent(w)
+}

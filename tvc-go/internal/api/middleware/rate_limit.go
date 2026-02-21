@@ -56,8 +56,8 @@ func RateLimitMiddleware(limiter RateLimiter, config *RateLimitConfig, log *logg
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Get user/org context from auth middleware
-			userID := GetUserIDFromContext(r.Context())
-			orgID := GetOrgIDFromContext(r.Context())
+			userID := GetUserID(r.Context()).String()
+			orgID := ""
 			tier := GetTierFromContext(r.Context())
 
 			// Determine rate limit key and limit
@@ -138,8 +138,7 @@ func RateLimitMiddleware(limiter RateLimiter, config *RateLimitConfig, log *logg
 
 				w.Header().Set("Retry-After", strconv.FormatInt(int64(window.Seconds()), 10))
 				
-				response.Error(w, r, http.StatusTooManyRequests, "RATE_LIMITED", 
-					fmt.Sprintf("Rate limit exceeded. Please try again in %s.", window.String()))
+				response.RateLimited(w)
 				return
 			}
 
@@ -211,16 +210,6 @@ func splitFirst(s, sep string) string {
 	}
 	return s
 }
-
-func max(a, b int64) int64 {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-// ContextKey types
-type contextKey string
 
 const (
 	ContextKeyTier contextKey = "tier"

@@ -92,6 +92,203 @@ func (s *PostgresStore) ListUserOrganizations(ctx context.Context, userID uuid.U
 	return orgs, rows.Err()
 }
 
+func (s *PostgresStore) UpdateOrganization(ctx context.Context, org *models.Organization) error {
+	result, err := s.db.ExecContext(ctx,
+		`UPDATE organizations SET name = $1, slug = $2, updated_at = NOW() WHERE id = $3`,
+		org.Name, org.Slug, org.ID)
+	if err != nil {
+		return fmt.Errorf("updating organization: %w", err)
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("checking update result: %w", err)
+	}
+	if rows == 0 {
+		return fmt.Errorf("organization not found")
+	}
+
+	return nil
+}
+
+func (s *PostgresStore) DeleteOrganization(ctx context.Context, id uuid.UUID) error {
+	result, err := s.db.ExecContext(ctx, `DELETE FROM organizations WHERE id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("deleting organization: %w", err)
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("checking delete result: %w", err)
+	}
+	if rows == 0 {
+		return fmt.Errorf("organization not found")
+	}
+
+	return nil
+}
+
+func (s *PostgresStore) AddOrganizationMember(ctx context.Context, orgID, userID uuid.UUID, role string) error {
+	_, err := s.db.ExecContext(ctx,
+		`INSERT INTO user_organizations (user_id, organization_id, role) VALUES ($1, $2, $3)`,
+		userID, orgID, role)
+	if err != nil {
+		return fmt.Errorf("adding organization member: %w", err)
+	}
+	return nil
+}
+
+func (s *PostgresStore) RemoveOrganizationMember(ctx context.Context, orgID, userID uuid.UUID) error {
+	result, err := s.db.ExecContext(ctx,
+		`DELETE FROM user_organizations WHERE organization_id = $1 AND user_id = $2`,
+		orgID, userID)
+	if err != nil {
+		return fmt.Errorf("removing organization member: %w", err)
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("checking delete result: %w", err)
+	}
+	if rows == 0 {
+		return fmt.Errorf("member not found")
+	}
+
+	return nil
+}
+
+func (s *PostgresStore) ListOrganizationMembers(ctx context.Context, orgID uuid.UUID) ([]models.OrganizationMember, error) {
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT u.id, u.email, COALESCE(u.full_name, ''), uo.role, uo.created_at
+		FROM users u
+		INNER JOIN user_organizations uo ON u.id = uo.user_id
+		WHERE uo.organization_id = $1
+		ORDER BY uo.created_at ASC`, orgID)
+	if err != nil {
+		return nil, fmt.Errorf("listing organization members: %w", err)
+	}
+	defer rows.Close()
+
+	var members []models.OrganizationMember
+	for rows.Next() {
+		var m models.OrganizationMember
+		if err := rows.Scan(&m.UserID, &m.Email, &m.FullName, &m.Role, &m.JoinedAt); err != nil {
+			return nil, fmt.Errorf("scanning member: %w", err)
+		}
+		members = append(members, m)
+	}
+	return members, rows.Err()
+}
+
+func (s *PostgresStore) UpdateOrganizationMemberRole(ctx context.Context, orgID, userID uuid.UUID, role string) error {
+	result, err := s.db.ExecContext(ctx,
+		`UPDATE user_organizations SET role = $1 WHERE organization_id = $2 AND user_id = $3`,
+		role, orgID, userID)
+	if err != nil {
+		return fmt.Errorf("updating member role: %w", err)
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("checking update result: %w", err)
+	}
+	if rows == 0 {
+		return fmt.Errorf("member not found")
+	}
+
+	return nil
+}
+
+func (s *PostgresStore) CreateAPIKey(ctx context.Context, key *models.APIKey) error {
+	_, err := s.db.ExecContext(ctx,
+		`INSERT INTO api_keys (id, organization_id, project_id, name, key_prefix, key_hash, expires_at, created_by) 
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+		key.ID, key.OrganizationID, key.ProjectID, key.Name, key.KeyPrefix, key.KeyHash, key.ExpiresAt, key.CreatedBy)
+	if err != nil {
+		return fmt.Errorf("creating API key: %w", err)
+	}
+	return nil
+}
+
+func (s *PostgresStore) GetAPIKey(ctx context.Context, id uuid.UUID) (*models.APIKey, error) {
+	var key models.APIKey
+	err := s.db.QueryRowContext(ctx,
+		`SELECT id, organization_id, project_id, name, key_prefix, key_hash, last_used_at, expires_at, created_at, created_by
+		FROM api_keys WHERE id = $1`, id).
+		Scan(&key.ID, &key.OrganizationID, &key.ProjectID, &key.Name, &key.KeyPrefix, 
+			&key.KeyHash, &key.LastUsedAt, &key.ExpiresAt, &key.CreatedAt, &key.CreatedBy)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("API key not found")
+	}
+	if err != nil {
+		return nil, fmt.Errorf("getting API key: %w", err)
+	}
+	return &key, nil
+}
+
+func (s *PostgresStore) GetAPIKeyByHash(ctx context.Context, keyPrefix string) (*models.APIKey, error) {
+	var key models.APIKey
+	err := s.db.QueryRowContext(ctx,
+		`SELECT id, organization_id, project_id, name, key_prefix, key_hash, last_used_at, expires_at, created_at, created_by
+		FROM api_keys WHERE key_prefix = $1 AND (expires_at IS NULL OR expires_at > NOW())`, keyPrefix).
+		Scan(&key.ID, &key.OrganizationID, &key.ProjectID, &key.Name, &key.KeyPrefix, 
+			&key.KeyHash, &key.LastUsedAt, &key.ExpiresAt, &key.CreatedAt, &key.CreatedBy)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("API key not found or expired")
+	}
+	if err != nil {
+		return nil, fmt.Errorf("getting API key: %w", err)
+	}
+	return &key, nil
+}
+
+func (s *PostgresStore) ListAPIKeys(ctx context.Context, orgID uuid.UUID) ([]models.APIKey, error) {
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT id, organization_id, project_id, name, key_prefix, last_used_at, expires_at, created_at, created_by
+		FROM api_keys WHERE organization_id = $1 ORDER BY created_at DESC`, orgID)
+	if err != nil {
+		return nil, fmt.Errorf("listing API keys: %w", err)
+	}
+	defer rows.Close()
+
+	var keys []models.APIKey
+	for rows.Next() {
+		var k models.APIKey
+		if err := rows.Scan(&k.ID, &k.OrganizationID, &k.ProjectID, &k.Name, &k.KeyPrefix, 
+			&k.LastUsedAt, &k.ExpiresAt, &k.CreatedAt, &k.CreatedBy); err != nil {
+			return nil, fmt.Errorf("scanning API key: %w", err)
+		}
+		keys = append(keys, k)
+	}
+	return keys, rows.Err()
+}
+
+func (s *PostgresStore) DeleteAPIKey(ctx context.Context, id uuid.UUID) error {
+	result, err := s.db.ExecContext(ctx, `DELETE FROM api_keys WHERE id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("deleting API key: %w", err)
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("checking delete result: %w", err)
+	}
+	if rows == 0 {
+		return fmt.Errorf("API key not found")
+	}
+
+	return nil
+}
+
+func (s *PostgresStore) UpdateAPIKeyLastUsed(ctx context.Context, id uuid.UUID) error {
+	_, err := s.db.ExecContext(ctx,
+		`UPDATE api_keys SET last_used_at = NOW() WHERE id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("updating API key last used: %w", err)
+	}
+	return nil
+}
+
 func (s *PostgresStore) SaveTrafficLog(log *models.TrafficLog) error {
 	queryParams, _ := json.Marshal(log.QueryParams)
 	reqHeaders, _ := json.Marshal(log.RequestHeaders)
@@ -129,21 +326,21 @@ func (s *PostgresStore) FetchTraffic(ctx context.Context, filter TrafficFilter) 
 		argIdx++
 	}
 
-	if filter.EnvironmentID != uuid.Nil {
+	if filter.EnvironmentID != nil && *filter.EnvironmentID != uuid.Nil {
 		query += fmt.Sprintf(" AND environment_id = $%d", argIdx)
-		args = append(args, filter.EnvironmentID)
+		args = append(args, *filter.EnvironmentID)
 		argIdx++
 	}
 
-	if !filter.StartTime.IsZero() {
+	if filter.StartTime != nil && !filter.StartTime.IsZero() {
 		query += fmt.Sprintf(" AND timestamp >= $%d", argIdx)
-		args = append(args, filter.StartTime)
+		args = append(args, *filter.StartTime)
 		argIdx++
 	}
 
-	if !filter.EndTime.IsZero() {
+	if filter.EndTime != nil && !filter.EndTime.IsZero() {
 		query += fmt.Sprintf(" AND timestamp <= $%d", argIdx)
-		args = append(args, filter.EndTime)
+		args = append(args, *filter.EndTime)
 		argIdx++
 	}
 
@@ -354,6 +551,42 @@ func (s *PostgresStore) CreateEnvironment(ctx context.Context, env *models.Envir
 	if err != nil {
 		return fmt.Errorf("creating environment: %w", err)
 	}
+	return nil
+}
+
+func (s *PostgresStore) UpdateEnvironment(ctx context.Context, env *models.Environment) error {
+	result, err := s.db.ExecContext(ctx,
+		`UPDATE environments SET name = $1, base_url = $2, is_source = $3 WHERE id = $4`,
+		env.Name, env.BaseURL, env.IsSource, env.ID)
+	if err != nil {
+		return fmt.Errorf("updating environment: %w", err)
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("checking update result: %w", err)
+	}
+	if rows == 0 {
+		return fmt.Errorf("environment not found")
+	}
+
+	return nil
+}
+
+func (s *PostgresStore) DeleteEnvironment(ctx context.Context, id uuid.UUID) error {
+	result, err := s.db.ExecContext(ctx, `DELETE FROM environments WHERE id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("deleting environment: %w", err)
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("checking delete result: %w", err)
+	}
+	if rows == 0 {
+		return fmt.Errorf("environment not found")
+	}
+
 	return nil
 }
 

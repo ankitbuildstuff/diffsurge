@@ -22,6 +22,7 @@ import { Badge, SeverityBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LoadingPage } from "@/components/ui/loading-spinner";
 import Link from "next/link";
+import { replaysApi } from "@/lib/api/replays";
 
 interface ReplayResult {
   id: string;
@@ -139,19 +140,21 @@ function ReplayReportPageContent() {
   const { data: session, isLoading: sessionLoading } = useQuery({
     queryKey: ["replay-session", replayId],
     queryFn: async () => {
-      // TODO: Replace with actual API call
-      return null as ReplaySession | null;
+      if (!projectId || !replayId) return null;
+      const response = await replaysApi.get(projectId, replayId);
+      return response.data;
     },
-    enabled: !!replayId,
+    enabled: !!replayId && !!projectId,
   });
 
   const { data: results, isLoading: resultsLoading } = useQuery({
     queryKey: ["replay-results", replayId],
     queryFn: async () => {
-      // TODO: Replace with actual API call
-      return [] as ReplayResult[];
+      if (!projectId || !replayId) return [];
+      const response = await replaysApi.results(projectId, replayId);
+      return response.data;
     },
-    enabled: !!replayId,
+    enabled: !!replayId && !!projectId,
   });
 
   if (sessionLoading || resultsLoading) {

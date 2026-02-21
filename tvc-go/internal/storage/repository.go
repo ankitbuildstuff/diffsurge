@@ -37,7 +37,24 @@ type Repository interface {
 	// Organizations
 	CreateOrganization(ctx context.Context, org *models.Organization) error
 	GetOrganization(ctx context.Context, id uuid.UUID) (*models.Organization, error)
+	UpdateOrganization(ctx context.Context, org *models.Organization) error
+	DeleteOrganization(ctx context.Context, id uuid.UUID) error
 	ListUserOrganizations(ctx context.Context, userID uuid.UUID) ([]models.Organization, error)
+	
+	// Organization Members
+	AddOrganizationMember(ctx context.Context, orgID, userID uuid.UUID, role string) error
+	RemoveOrganizationMember(ctx context.Context, orgID, userID uuid.UUID) error
+	ListOrganizationMembers(ctx context.Context, orgID uuid.UUID) ([]models.OrganizationMember, error)
+	UpdateOrganizationMemberRole(ctx context.Context, orgID, userID uuid.UUID, role string) error
+
+	// API Keys
+	CreateAPIKey(ctx context.Context, key *models.APIKey) error
+	GetAPIKey(ctx context.Context, id uuid.UUID) (*models.APIKey, error)
+	GetAPIKeyByHash(ctx context.Context, keyHash string) (*models.APIKey, error)
+	ListAPIKeys(ctx context.Context, orgID uuid.UUID) ([]models.APIKey, error)
+	DeleteAPIKey(ctx context.Context, id uuid.UUID) error
+	UpdateAPIKeyLastUsed(ctx context.Context, id uuid.UUID) error
+
 
 	// Traffic
 	SaveTrafficLog(log *models.TrafficLog) error
@@ -56,6 +73,8 @@ type Repository interface {
 	ListEnvironments(ctx context.Context, projectID uuid.UUID) ([]models.Environment, error)
 	GetEnvironment(ctx context.Context, id uuid.UUID) (*models.Environment, error)
 	CreateEnvironment(ctx context.Context, env *models.Environment) error
+	UpdateEnvironment(ctx context.Context, env *models.Environment) error
+	DeleteEnvironment(ctx context.Context, id uuid.UUID) error
 
 	// Replay Sessions
 	ListReplaySessions(ctx context.Context, projectID uuid.UUID) ([]models.ReplaySession, error)

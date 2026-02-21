@@ -39,10 +39,10 @@ func (h *TrafficHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if start := request.QueryTime(r, "start_time"); start != nil {
-		filter.StartTime = *start
+		filter.StartTime = start
 	}
 	if end := request.QueryTime(r, "end_time"); end != nil {
-		filter.EndTime = *end
+		filter.EndTime = end
 	}
 
 	logs, err := h.store.FetchTraffic(r.Context(), filter)
@@ -133,7 +133,7 @@ func (h *TrafficHandler) Stats(w http.ResponseWriter, r *http.Request) {
 
 	filter := storage.TrafficFilter{
 		ProjectID: projectID,
-		StartTime: startTime,
+		StartTime: &startTime,
 		Limit:     10000,
 	}
 

@@ -15,7 +15,9 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/tvc-org/tvc/internal/api/response"
+	"github.com/tvc-org/tvc/internal/storage"
 	"github.com/tvc-org/tvc/pkg/logger"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -42,12 +44,14 @@ type Auth struct {
 	config    AuthConfig
 	log       *logger.Logger
 	jwksCache *JWKSCache
+	store     storage.Repository
 }
 
-func NewAuth(cfg AuthConfig, log *logger.Logger) *Auth {
+func NewAuth(cfg AuthConfig, log *logger.Logger, store storage.Repository) *Auth {
 	a := &Auth{
 		config: cfg,
 		log:    log,
+		store:  store,
 	}
 
 	if cfg.SupabaseURL != "" {
@@ -69,6 +73,18 @@ func (a *Auth) Middleware(next http.Handler) http.Handler {
 			return
 		}
 
+		// Check if it's an API key (starts with tvc_live_)
+		if strings.HasPrefix(token, "tvc_live_") {
+			if err := a.validateAPIKey(r, token); err != nil {
+				a.log.Debug().Err(err).Msg("API key validation failed")
+				response.Unauthorized(w, "Invalid or expired API key")
+				return
+			}
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// Otherwise validate as JWT
 		claims, err := a.validateToken(token)
 		if err != nil {
 			a.log.Debug().Err(err).Msg("token validation failed")
@@ -91,6 +107,40 @@ func (a *Auth) Middleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func (a *Auth) validateAPIKey(r *http.Request, fullKey string) error {
+	if len(fullKey) < 16 {
+		return fmt.Errorf("invalid API key format")
+	}
+
+	prefix := fullKey[:16]
+	
+	// Lookup key by prefix
+	apiKey, err := a.store.GetAPIKeyByHash(r.Context(), prefix)
+	if err != nil {
+		return fmt.Errorf("API key not found: %w", err)
+	}
+
+	// Verify the full key against stored hash
+	if err := bcrypt.CompareHashAndPassword([]byte(apiKey.KeyHash), []byte(fullKey)); err != nil {
+		return fmt.Errorf("API key mismatch")
+	}
+
+	// Check expiration
+	if apiKey.ExpiresAt != nil && apiKey.ExpiresAt.Before(time.Now()) {
+		return fmt.Errorf("API key expired")
+	}
+
+	// Update last used timestamp (async, don't wait)
+	go a.store.UpdateAPIKeyLastUsed(context.Background(), apiKey.ID)
+
+	// Set org context from API key
+	ctx := context.WithValue(r.Context(), UserIDKey, apiKey.OrganizationID)
+	ctx = context.WithValue(ctx, UserRoleKey, "api_key")
+	*r = *r.WithContext(ctx)
+
+	return nil
 }
 
 // RequireRole creates middleware that enforces a minimum role level.

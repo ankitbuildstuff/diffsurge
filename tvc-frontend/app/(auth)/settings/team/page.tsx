@@ -43,6 +43,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingPage } from "@/components/ui/loading-spinner";
 import { useState } from "react";
 import Link from "next/link";
+import { organizationsApi } from "@/lib/api/organizations";
+import { toast } from "sonner";
 
 interface TeamMember {
   id: string;
@@ -55,43 +57,47 @@ interface TeamMember {
 
 function TeamPageContent() {
   const searchParams = useSearchParams();
-  const projectId = searchParams.get("project") || "";
+  const orgId = searchParams.get("org") || "";
   const queryClient = useQueryClient();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<"admin" | "member">("member");
+  const [inviteRole, setInviteRole] = useState<"admin" | "member" | "viewer">(
+    "member",
+  );
 
-  // TODO: Replace with actual API call
   const { data: members, isLoading } = useQuery({
-    queryKey: ["team-members", projectId],
+    queryKey: ["org-members", orgId],
     queryFn: async () => {
-      // Placeholder - replace with actual API
-      return [] as TeamMember[];
+      return await organizationsApi.listMembers(orgId);
     },
-    enabled: !!projectId,
+    enabled: !!orgId,
   });
 
   const inviteMutation = useMutation({
     mutationFn: async (data: { email: string; role: string }) => {
-      // TODO: Replace with actual API call
-      console.log("Inviting:", data);
-      return { success: true };
+      return await organizationsApi.addMember(orgId, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["team-members"] });
+      queryClient.invalidateQueries({ queryKey: ["org-members", orgId] });
       setInviteOpen(false);
       setInviteEmail("");
+      toast.success("Member invited successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to invite member");
     },
   });
 
   const removeMutation = useMutation({
     mutationFn: async (memberId: string) => {
-      // TODO: Replace with actual API call
-      console.log("Removing:", memberId);
-      return { success: true };
+      return await organizationsApi.removeMember(orgId, memberId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["team-members"] });
+      queryClient.invalidateQueries({ queryKey: ["org-members", orgId] });
+      toast.success("Member removed successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to remove member");
     },
   });
 
@@ -104,12 +110,12 @@ function TeamPageContent() {
     return <LoadingPage />;
   }
 
-  if (!projectId) {
+  if (!orgId) {
     return (
       <EmptyState
         icon={<Users size={28} className="text-zinc-400" />}
-        title="No project selected"
-        description="Select a project to view and manage team members."
+        title="No organization selected"
+        description="Select an organization to view and manage team members."
         action={
           <Link href="/settings">
             <Button>Go to Settings</Button>

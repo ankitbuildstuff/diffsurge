@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LoadingPage } from "@/components/ui/loading-spinner";
 import Link from "next/link";
+import { schemasApi } from "@/lib/api/schemas";
 
 interface SchemaVersion {
   id: string;
@@ -132,8 +133,8 @@ function SchemaDiffPageContent() {
   const { data: versions, isLoading: versionsLoading } = useQuery({
     queryKey: ["schema-versions", projectId],
     queryFn: async () => {
-      // TODO: Replace with actual API call
-      return [] as SchemaVersion[];
+      const response = await schemasApi.list(projectId);
+      return response.data;
     },
     enabled: !!projectId,
   });
@@ -141,8 +142,13 @@ function SchemaDiffPageContent() {
   const { data: diff, isLoading: diffLoading } = useQuery({
     queryKey: ["schema-diff", baseVersion, compareVersion],
     queryFn: async () => {
-      // TODO: Replace with actual API call
-      return null as SchemaDiff | null;
+      if (!projectId || !baseVersion || !compareVersion) return null;
+      const response = await schemasApi.diff(
+        projectId,
+        baseVersion,
+        compareVersion,
+      );
+      return response.data.diff_report as SchemaDiff;
     },
     enabled: !!baseVersion && !!compareVersion,
   });
