@@ -9,15 +9,15 @@ const (
 )
 
 type Config struct {
-	Enabled          bool              `mapstructure:"enabled"`
-	Mode             RedactionMode     `mapstructure:"mode"`
-	Patterns         PatternConfig     `mapstructure:"patterns"`
-	CustomPatterns   []CustomPattern   `mapstructure:"custom_patterns"`
-	ScanHeaders      bool              `mapstructure:"scan_headers"`
-	ScanQueryParams  bool              `mapstructure:"scan_query_params"`
-	ScanURLPath      bool              `mapstructure:"scan_url_path"`
-	ScanRequestBody  bool              `mapstructure:"scan_request_body"`
-	ScanResponseBody bool              `mapstructure:"scan_response_body"`
+	Enabled          bool            `mapstructure:"enabled"`
+	Mode             RedactionMode   `mapstructure:"mode"`
+	Patterns         PatternConfig   `mapstructure:"patterns"`
+	CustomPatterns   []CustomPattern `mapstructure:"custom_patterns"`
+	ScanHeaders      bool            `mapstructure:"scan_headers"`
+	ScanQueryParams  bool            `mapstructure:"scan_query_params"`
+	ScanURLPath      bool            `mapstructure:"scan_url_path"`
+	ScanRequestBody  bool            `mapstructure:"scan_request_body"`
+	ScanResponseBody bool            `mapstructure:"scan_response_body"`
 }
 
 type PatternConfig struct {

@@ -8,9 +8,9 @@ import (
 )
 
 type Detection struct {
-	Type    PatternType `json:"type"`
-	Path    string      `json:"path"`
-	Redacted bool       `json:"redacted"`
+	Type     PatternType `json:"type"`
+	Path     string      `json:"path"`
+	Redacted bool        `json:"redacted"`
 }
 
 type ScanResult struct {

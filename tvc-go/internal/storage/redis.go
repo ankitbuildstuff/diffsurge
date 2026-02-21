@@ -11,16 +11,16 @@ import (
 )
 
 const (
-	trafficQueueKey  = "tvc:queue:traffic"
-	cacheKeyPrefix   = "tvc:cache:"
-	rateLimitPrefix  = "tvc:ratelimit:"
-	
+	trafficQueueKey = "tvc:queue:traffic"
+	cacheKeyPrefix  = "tvc:cache:"
+	rateLimitPrefix = "tvc:ratelimit:"
+
 	// Default TTLs for caching
-	ProjectCacheTTL       = 5 * time.Minute
-	EnvironmentCacheTTL   = 5 * time.Minute
-	StatsCacheTTL         = 30 * time.Second
-	UserOrgsCacheTTL      = 5 * time.Minute
-	SubscriptionLimitTTL  = 1 * time.Minute
+	ProjectCacheTTL      = 5 * time.Minute
+	EnvironmentCacheTTL  = 5 * time.Minute
+	StatsCacheTTL        = 30 * time.Second
+	UserOrgsCacheTTL     = 5 * time.Minute
+	SubscriptionLimitTTL = 1 * time.Minute
 )
 
 // RedisStore handles Redis operations for caching and buffering
@@ -148,17 +148,17 @@ func (r *RedisStore) DeleteCache(ctx context.Context, key string) error {
 func (r *RedisStore) DeleteCachePattern(ctx context.Context, pattern string) error {
 	matchPattern := cacheKeyPrefix + pattern
 	iter := r.client.Scan(ctx, 0, matchPattern, 0).Iterator()
-	
+
 	for iter.Next(ctx) {
 		if err := r.client.Del(ctx, iter.Val()).Err(); err != nil {
 			return fmt.Errorf("failed to delete key %s: %w", iter.Val(), err)
 		}
 	}
-	
+
 	if err := iter.Err(); err != nil {
 		return fmt.Errorf("scan iteration error: %w", err)
 	}
-	
+
 	return nil
 }
 

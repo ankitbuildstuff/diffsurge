@@ -16,17 +16,17 @@ import (
 )
 
 const (
-	pollInterval     = 5 * time.Second
-	sessionTimeout   = 30 * time.Minute
-	maxConcurrent    = 3 // Max number of concurrent replay sessions
-	workerPoolSize   = 10
-	requestTimeout   = 30 * time.Second
-	maxRetries       = 3
+	pollInterval   = 5 * time.Second
+	sessionTimeout = 30 * time.Minute
+	maxConcurrent  = 3 // Max number of concurrent replay sessions
+	workerPoolSize = 10
+	requestTimeout = 30 * time.Second
+	maxRetries     = 3
 )
 
 func main() {
 	log := logger.New("info", "json")
-	
+
 	log.Info().
 		Str("version", config.Version).
 		Msg("TVC Replay Engine starting")
@@ -79,11 +79,11 @@ func main() {
 
 	// Create service
 	service := &ReplayerService{
-		repo:          repo,
-		redis:         redisStore,
-		sessionRunner: sessionRunner,
-		log:           log,
-		maxConcurrent: maxConcurrent,
+		repo:           repo,
+		redis:          redisStore,
+		sessionRunner:  sessionRunner,
+		log:            log,
+		maxConcurrent:  maxConcurrent,
 		activeSessions: make(map[string]context.CancelFunc),
 	}
 

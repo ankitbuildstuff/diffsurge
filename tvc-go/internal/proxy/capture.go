@@ -117,7 +117,7 @@ func (tc *TrafficCapture) Stats() CaptureStats {
 		Dropped:   tc.dropped.Load(),
 		QueueSize: len(tc.buffer),
 	}
-	
+
 	if tc.useRedis && tc.redisQueue != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 		defer cancel()
@@ -125,7 +125,7 @@ func (tc *TrafficCapture) Stats() CaptureStats {
 			stats.RedisQueue = length
 		}
 	}
-	
+
 	return stats
 }
 
@@ -141,7 +141,7 @@ func (tc *TrafficCapture) channelWorker(id int) {
 func (tc *TrafficCapture) redisWorker(id int) {
 	defer tc.wg.Done()
 	ctx := context.Background()
-	
+
 	for {
 		tc.mu.Lock()
 		if tc.closed {
@@ -149,19 +149,19 @@ func (tc *TrafficCapture) redisWorker(id int) {
 			return
 		}
 		tc.mu.Unlock()
-		
+
 		log, err := tc.redisQueue.DequeueTraffic(ctx, 1*time.Second)
 		if err != nil {
 			tc.log.Error().Err(err).Int("worker", id).Msg("Failed to dequeue from Redis")
 			time.Sleep(100 * time.Millisecond)
 			continue
 		}
-		
+
 		if log == nil {
 			// Timeout, no items in queue - continue polling
 			continue
 		}
-		
+
 		tc.processLog(log, id)
 	}
 }
@@ -171,14 +171,14 @@ func (tc *TrafficCapture) processLog(log *models.TrafficLog, workerID int) {
 	if tc.piiRedactor != nil {
 		tc.piiRedactor.RedactTrafficLog(log)
 	}
-	
+
 	if tc.store != nil {
 		if err := tc.store.SaveTrafficLog(log); err != nil {
 			tc.log.Error().Err(err).Int("worker", workerID).Msg("Failed to save traffic log")
 			return
 		}
 	}
-	
+
 	tc.captured.Add(1)
 }
 
@@ -276,7 +276,7 @@ func (tc *TrafficCapture) enqueue(r *http.Request, reqBody []byte, rec *response
 	if tc.useRedis && tc.redisQueue != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
 		defer cancel()
-		
+
 		if err := tc.redisQueue.EnqueueTraffic(ctx, trafficLog); err != nil {
 			tc.log.Error().Err(err).Msg("Failed to enqueue to Redis, dropping traffic log")
 			tc.dropped.Add(1)

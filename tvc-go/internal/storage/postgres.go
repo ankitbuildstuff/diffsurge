@@ -215,7 +215,7 @@ func (s *PostgresStore) GetAPIKey(ctx context.Context, id uuid.UUID) (*models.AP
 	err := s.db.QueryRowContext(ctx,
 		`SELECT id, organization_id, project_id, name, key_prefix, key_hash, last_used_at, expires_at, created_at, created_by
 		FROM api_keys WHERE id = $1`, id).
-		Scan(&key.ID, &key.OrganizationID, &key.ProjectID, &key.Name, &key.KeyPrefix, 
+		Scan(&key.ID, &key.OrganizationID, &key.ProjectID, &key.Name, &key.KeyPrefix,
 			&key.KeyHash, &key.LastUsedAt, &key.ExpiresAt, &key.CreatedAt, &key.CreatedBy)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("API key not found")
@@ -231,7 +231,7 @@ func (s *PostgresStore) GetAPIKeyByHash(ctx context.Context, keyPrefix string) (
 	err := s.db.QueryRowContext(ctx,
 		`SELECT id, organization_id, project_id, name, key_prefix, key_hash, last_used_at, expires_at, created_at, created_by
 		FROM api_keys WHERE key_prefix = $1 AND (expires_at IS NULL OR expires_at > NOW())`, keyPrefix).
-		Scan(&key.ID, &key.OrganizationID, &key.ProjectID, &key.Name, &key.KeyPrefix, 
+		Scan(&key.ID, &key.OrganizationID, &key.ProjectID, &key.Name, &key.KeyPrefix,
 			&key.KeyHash, &key.LastUsedAt, &key.ExpiresAt, &key.CreatedAt, &key.CreatedBy)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("API key not found or expired")
@@ -254,7 +254,7 @@ func (s *PostgresStore) ListAPIKeys(ctx context.Context, orgID uuid.UUID) ([]mod
 	var keys []models.APIKey
 	for rows.Next() {
 		var k models.APIKey
-		if err := rows.Scan(&k.ID, &k.OrganizationID, &k.ProjectID, &k.Name, &k.KeyPrefix, 
+		if err := rows.Scan(&k.ID, &k.OrganizationID, &k.ProjectID, &k.Name, &k.KeyPrefix,
 			&k.LastUsedAt, &k.ExpiresAt, &k.CreatedAt, &k.CreatedBy); err != nil {
 			return nil, fmt.Errorf("scanning API key: %w", err)
 		}

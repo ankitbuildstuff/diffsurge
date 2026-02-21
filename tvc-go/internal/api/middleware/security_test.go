@@ -11,7 +11,7 @@ import (
 func TestSecurityHeadersMiddleware_DefaultHeaders(t *testing.T) {
 	config := DefaultSecurityConfig()
 	middleware := SecurityHeadersMiddleware(config)
-	
+
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -33,9 +33,9 @@ func TestSecurityHeadersMiddleware_DefaultHeaders(t *testing.T) {
 func TestSecurityHeadersMiddleware_CustomHeaders(t *testing.T) {
 	config := DefaultSecurityConfig()
 	config.CustomHeaders["X-Custom-Header"] = "CustomValue"
-	
+
 	middleware := SecurityHeadersMiddleware(config)
-	
+
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -50,7 +50,7 @@ func TestSecurityHeadersMiddleware_CustomHeaders(t *testing.T) {
 func TestSecurityHeadersMiddleware_DevelopmentMode(t *testing.T) {
 	config := DevelopmentSecurityConfig()
 	middleware := SecurityHeadersMiddleware(config)
-	
+
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -61,7 +61,7 @@ func TestSecurityHeadersMiddleware_DevelopmentMode(t *testing.T) {
 
 	// HSTS should not be set in development
 	assert.Empty(t, w.Header().Get("Strict-Transport-Security"))
-	
+
 	// But other headers should still be present
 	assert.NotEmpty(t, w.Header().Get("Content-Security-Policy"))
 }
@@ -69,14 +69,14 @@ func TestSecurityHeadersMiddleware_DevelopmentMode(t *testing.T) {
 func TestCORSMiddleware_AllowedOrigin(t *testing.T) {
 	allowedOrigins := []string{"https://app.example.com", "https://admin.example.com"}
 	middleware := CORSMiddleware(allowedOrigins, true)
-	
+
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
 	req := httptest.NewRequest("GET", "/test", nil)
 	req.Header.Set("Origin", "https://app.example.com")
-	
+
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
@@ -87,14 +87,14 @@ func TestCORSMiddleware_AllowedOrigin(t *testing.T) {
 func TestCORSMiddleware_DisallowedOrigin(t *testing.T) {
 	allowedOrigins := []string{"https://app.example.com"}
 	middleware := CORSMiddleware(allowedOrigins, true)
-	
+
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
 	req := httptest.NewRequest("GET", "/test", nil)
 	req.Header.Set("Origin", "https://evil.com")
-	
+
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
@@ -104,14 +104,14 @@ func TestCORSMiddleware_DisallowedOrigin(t *testing.T) {
 func TestCORSMiddleware_Preflight(t *testing.T) {
 	allowedOrigins := []string{"https://app.example.com"}
 	middleware := CORSMiddleware(allowedOrigins, true)
-	
+
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		t.Fatal("Handler should not be called for OPTIONS request")
 	}))
 
 	req := httptest.NewRequest("OPTIONS", "/test", nil)
 	req.Header.Set("Origin", "https://app.example.com")
-	
+
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
@@ -124,7 +124,7 @@ func TestCORSMiddleware_Preflight(t *testing.T) {
 func TestCORSMiddleware_WildcardOrigin(t *testing.T) {
 	allowedOrigins := []string{"https://*.example.com"}
 	middleware := CORSMiddleware(allowedOrigins, true)
-	
+
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -136,16 +136,16 @@ func TestCORSMiddleware_WildcardOrigin(t *testing.T) {
 		{"https://app.example.com", true},
 		{"https://api.example.com", true},
 		{"https://admin.example.com", true},
-		{"https://example.com", false},      // No subdomain
-		{"https://evil.com", false},         // Different domain
-		{"http://app.example.com", false},   // Different protocol
+		{"https://example.com", false},    // No subdomain
+		{"https://evil.com", false},       // Different domain
+		{"http://app.example.com", false}, // Different protocol
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.origin, func(t *testing.T) {
 			req := httptest.NewRequest("GET", "/test", nil)
 			req.Header.Set("Origin", tt.origin)
-			
+
 			w := httptest.NewRecorder()
 			handler.ServeHTTP(w, req)
 
@@ -161,14 +161,14 @@ func TestCORSMiddleware_WildcardOrigin(t *testing.T) {
 func TestCORSMiddleware_AllowAll(t *testing.T) {
 	allowedOrigins := []string{"*"}
 	middleware := CORSMiddleware(allowedOrigins, false)
-	
+
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
 	req := httptest.NewRequest("GET", "/test", nil)
 	req.Header.Set("Origin", "https://any-origin.com")
-	
+
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
@@ -177,7 +177,7 @@ func TestCORSMiddleware_AllowAll(t *testing.T) {
 
 func TestNoSniffMiddleware(t *testing.T) {
 	middleware := NoSniffMiddleware
-	
+
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -191,7 +191,7 @@ func TestNoSniffMiddleware(t *testing.T) {
 
 func TestNoFrameMiddleware(t *testing.T) {
 	middleware := NoFrameMiddleware
-	
+
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -370,7 +370,7 @@ func TestGetRequestOrigin(t *testing.T) {
 func BenchmarkSecurityHeadersMiddleware(b *testing.B) {
 	config := DefaultSecurityConfig()
 	middleware := SecurityHeadersMiddleware(config)
-	
+
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -387,7 +387,7 @@ func BenchmarkSecurityHeadersMiddleware(b *testing.B) {
 func BenchmarkCORSMiddleware(b *testing.B) {
 	allowedOrigins := []string{"https://app.example.com", "https://api.example.com"}
 	middleware := CORSMiddleware(allowedOrigins, true)
-	
+
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))

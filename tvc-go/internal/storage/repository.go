@@ -40,7 +40,7 @@ type Repository interface {
 	UpdateOrganization(ctx context.Context, org *models.Organization) error
 	DeleteOrganization(ctx context.Context, id uuid.UUID) error
 	ListUserOrganizations(ctx context.Context, userID uuid.UUID) ([]models.Organization, error)
-	
+
 	// Organization Members
 	AddOrganizationMember(ctx context.Context, orgID, userID uuid.UUID, role string) error
 	RemoveOrganizationMember(ctx context.Context, orgID, userID uuid.UUID) error

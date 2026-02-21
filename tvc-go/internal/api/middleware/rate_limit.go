@@ -29,9 +29,9 @@ type RateLimitConfig struct {
 	EnterpriseLimit int64
 
 	// Special endpoint limits
-	AuthLimit       int64  // Login attempts
-	UploadLimit     int64  // Schema uploads
-	ReplayLimit     int64  // Replay starts
+	AuthLimit   int64 // Login attempts
+	UploadLimit int64 // Schema uploads
+	ReplayLimit int64 // Replay starts
 }
 
 // DefaultRateLimitConfig returns sensible defaults
@@ -126,7 +126,7 @@ func RateLimitMiddleware(limiter RateLimiter, config *RateLimitConfig, log *logg
 					Msg("Rate limit exceeded")
 
 				w.Header().Set("Retry-After", strconv.FormatInt(int64(window.Seconds()), 10))
-				
+
 				response.RateLimited(w)
 				return
 			}
