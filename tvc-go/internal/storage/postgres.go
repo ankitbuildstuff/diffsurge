@@ -395,6 +395,11 @@ func (s *PostgresStore) SaveTrafficLog(log *models.TrafficLog) error {
 	respHeaders, _ := json.Marshal(log.ResponseHeaders)
 	respBody, _ := json.Marshal(log.ResponseBody)
 
+	var ipAddr interface{} = log.IPAddress
+	if log.IPAddress == "" {
+		ipAddr = nil
+	}
+
 	_, err := s.db.Exec(`
 		INSERT INTO traffic_logs (id, project_id, environment_id, method, path, query_params,
 			request_headers, request_body, status_code, response_headers, response_body,
@@ -402,7 +407,7 @@ func (s *PostgresStore) SaveTrafficLog(log *models.TrafficLog) error {
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
 		log.ID, log.ProjectID, log.EnvironmentID, log.Method, log.Path,
 		queryParams, reqHeaders, reqBody, log.StatusCode, respHeaders, respBody,
-		log.Timestamp, log.LatencyMs, log.IPAddress, log.UserAgent, log.PIIRedacted,
+		log.Timestamp, log.LatencyMs, ipAddr, log.UserAgent, log.PIIRedacted,
 	)
 	if err != nil {
 		return fmt.Errorf("inserting traffic log: %w", err)

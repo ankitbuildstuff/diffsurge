@@ -204,12 +204,11 @@ func TestAPICRUDLifecycle(t *testing.T) {
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusCreated, w.Code)
-		var createResp struct {
-			Data models.Project `json:"data"`
-		}
-		err := json.NewDecoder(w.Body).Decode(&createResp)
+		var createdProject models.Project
+		err := json.NewDecoder(w.Body).Decode(&createdProject)
 		require.NoError(t, err)
-		projectID := createResp.Data.ID
+		projectID := createdProject.ID
+		require.NotEqual(t, uuid.Nil, projectID, "Created project should have a valid ID")
 
 		// READ: Get the project
 		req = httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/projects/%s", projectID), nil)
