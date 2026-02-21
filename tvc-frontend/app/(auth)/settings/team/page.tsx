@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import { Users, UserPlus, Mail, Trash2, Crown } from "lucide-react";
+import { Users, UserPlus, Mail, Trash2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -74,7 +74,7 @@ function TeamPageContent() {
   });
 
   const inviteMutation = useMutation({
-    mutationFn: async (data: { email: string; role: string }) => {
+    mutationFn: async (data: { email: string; role: "admin" | "member" | "viewer" }) => {
       return await organizationsApi.addMember(orgId, data);
     },
     onSuccess: () => {
@@ -239,27 +239,20 @@ function TeamPageContent() {
               </TableHeader>
               <TableBody>
                 {members.map((member) => (
-                  <TableRow key={member.id}>
-                    <TableCell className="font-medium">{member.name}</TableCell>
+                  <TableRow key={member.user_id}>
+                    <TableCell className="font-medium">
+                      {member.full_name || member.email}
+                    </TableCell>
                     <TableCell className="text-zinc-500">
                       {member.email}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1.5">
-                        {member.role === "owner" && (
-                          <Crown size={14} className="text-amber-500" />
-                        )}
                         <span className="capitalize">{member.role}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant={
-                          member.status === "active" ? "success" : "warning"
-                        }
-                      >
-                        {member.status}
-                      </Badge>
+                      <Badge variant="success">active</Badge>
                     </TableCell>
                     <TableCell className="text-zinc-500">
                       {new Date(member.joined_at).toLocaleDateString()}
@@ -276,18 +269,16 @@ function TeamPageContent() {
                             <Mail size={14} />
                             Resend invitation
                           </DropdownMenuItem>
-                          {member.role !== "owner" && (
-                            <>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => removeMutation.mutate(member.id)}
-                              >
-                                <Trash2 size={14} />
-                                Remove member
-                              </DropdownMenuItem>
-                            </>
-                          )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onClick={() =>
+                              removeMutation.mutate(member.user_id)
+                            }
+                          >
+                            <Trash2 size={14} />
+                            Remove member
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

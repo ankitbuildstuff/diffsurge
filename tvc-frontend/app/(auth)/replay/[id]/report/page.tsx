@@ -22,9 +22,16 @@ import { Badge, SeverityBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LoadingPage } from "@/components/ui/loading-spinner";
 import Link from "next/link";
-import { replaysApi } from "@/lib/api/replays";
+import { replaysApi, type ReplaySession } from "@/lib/api/replays";
 
-interface ReplayResult {
+interface ReplayResultDiff {
+  path: string;
+  type: "added" | "removed" | "changed";
+  old_value?: unknown;
+  new_value?: unknown;
+}
+
+interface ReplayResultDetail {
   id: string;
   request_path: string;
   request_method: string;
@@ -38,26 +45,10 @@ interface ReplayResult {
   };
   original_body: Record<string, unknown>;
   replay_body: Record<string, unknown>;
-  diff: Array<{
-    path: string;
-    type: "added" | "removed" | "changed";
-    old_value?: unknown;
-    new_value?: unknown;
-  }>;
+  diff: ReplayResultDiff[];
 }
 
-interface ReplaySession {
-  id: string;
-  name: string;
-  status: string;
-  started_at: string;
-  completed_at: string;
-  total_requests: number;
-  passed: number;
-  failed: number;
-}
-
-function DiffViewer({ diff }: { diff: ReplayResult["diff"] }) {
+function DiffViewer({ diff }: { diff: ReplayResultDiff[] }) {
   if (diff.length === 0) {
     return (
       <div className="flex items-center gap-2 text-sm text-emerald-600">
@@ -150,9 +141,9 @@ function ReplayReportPageContent() {
   const { data: results, isLoading: resultsLoading } = useQuery({
     queryKey: ["replay-results", replayId],
     queryFn: async () => {
-      if (!projectId || !replayId) return [];
+      if (!projectId || !replayId) return [] as ReplayResultDetail[];
       const response = await replaysApi.results(projectId, replayId);
-      return response.data;
+      return response.data as unknown as ReplayResultDetail[];
     },
     enabled: !!replayId && !!projectId,
   });
@@ -221,7 +212,7 @@ function ReplayReportPageContent() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-semibold text-emerald-600">
-              {session.passed}
+              {session.successful_requests}
             </p>
           </CardContent>
         </Card>
@@ -233,7 +224,7 @@ function ReplayReportPageContent() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-semibold text-red-600">
-              {session.failed}
+              {session.failed_requests}
             </p>
           </CardContent>
         </Card>
@@ -245,12 +236,13 @@ function ReplayReportPageContent() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-semibold">
-              {Math.round(
-                (new Date(session.completed_at).getTime() -
-                  new Date(session.started_at).getTime()) /
-                  1000,
-              )}
-              s
+              {session.started_at && session.completed_at
+                ? `${Math.round(
+                    (new Date(session.completed_at).getTime() -
+                      new Date(session.started_at).getTime()) /
+                      1000,
+                  )}s`
+                : "—"}
             </p>
           </CardContent>
         </Card>

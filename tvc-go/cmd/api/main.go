@@ -24,8 +24,10 @@ func main() {
 		log.Warn().Err(err).Msg("Config not found, using defaults")
 	}
 
-	port := 8081
-	if cfg != nil && cfg.Server.Port != 0 {
+	port := 8080
+	if envPort := os.Getenv("PORT"); envPort != "" {
+		fmt.Sscanf(envPort, "%d", &port)
+	} else if cfg != nil && cfg.Server.Port != 0 {
 		port = cfg.Server.Port
 	}
 	addr := fmt.Sprintf(":%d", port)

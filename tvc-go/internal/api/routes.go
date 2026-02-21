@@ -26,6 +26,7 @@ func NewRouter(deps ServerDeps) http.Handler {
 	schemas := handlers.NewSchemaHandler(deps.Store, deps.Log)
 	orgs := handlers.NewOrganizationHandler(deps.Store, deps.Log)
 	apiKeys := handlers.NewAPIKeyHandler(deps.Store, deps.Log)
+	audit := handlers.NewAuditLogHandler(deps.Store, deps.Log)
 	health := handlers.NewHealthHandler(deps.Store)
 
 	// Health endpoints (no auth)
@@ -81,6 +82,9 @@ func NewRouter(deps ServerDeps) http.Handler {
 	mux.HandleFunc("GET /api/v1/organizations/{id}/api-keys", apiKeys.List)
 	mux.HandleFunc("POST /api/v1/organizations/{id}/api-keys", apiKeys.Create)
 	mux.HandleFunc("DELETE /api/v1/organizations/{id}/api-keys/{keyId}", apiKeys.Delete)
+
+	// Audit Logs
+	mux.HandleFunc("GET /api/v1/organizations/{id}/audit-logs", audit.List)
 
 	// Build middleware chain (applied in reverse order)
 	auth := middleware.NewAuth(deps.AuthConfig, deps.Log, deps.Store)

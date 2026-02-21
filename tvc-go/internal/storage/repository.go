@@ -55,6 +55,9 @@ type Repository interface {
 	DeleteAPIKey(ctx context.Context, id uuid.UUID) error
 	UpdateAPIKeyLastUsed(ctx context.Context, id uuid.UUID) error
 
+	// Audit Logs
+	CreateAuditLog(ctx context.Context, log *models.AuditLog) error
+	ListAuditLogs(ctx context.Context, filter models.AuditLogFilter) ([]models.AuditLog, error)
 
 	// Traffic
 	SaveTrafficLog(log *models.TrafficLog) error

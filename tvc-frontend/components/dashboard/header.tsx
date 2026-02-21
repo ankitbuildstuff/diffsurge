@@ -1,20 +1,15 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { LogOut, User } from "lucide-react";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { useState } from "react";
+import { LogOut, User, Building2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useOrganization } from "@/lib/providers/organization-provider";
 
 export function DashboardHeader() {
-  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const { user, activeOrg } = useOrganization();
   const [showMenu, setShowMenu] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-  }, []);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -25,7 +20,14 @@ export function DashboardHeader() {
 
   return (
     <header className="flex h-14 items-center justify-between border-b border-zinc-100 bg-white px-6">
-      <div />
+      {activeOrg ? (
+        <div className="flex items-center gap-2 text-[13px] text-zinc-500">
+          <Building2 size={14} className="text-zinc-400" />
+          <span className="font-medium text-zinc-700">{activeOrg.name}</span>
+        </div>
+      ) : (
+        <div />
+      )}
 
       <div className="relative">
         <button
@@ -46,7 +48,17 @@ export function DashboardHeader() {
               className="fixed inset-0 z-40"
               onClick={() => setShowMenu(false)}
             />
-            <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-lg border border-zinc-100 bg-white py-1 shadow-lg">
+            <div className="absolute right-0 top-full z-50 mt-1 w-56 rounded-lg border border-zinc-100 bg-white py-1 shadow-lg">
+              {activeOrg && (
+                <div className="border-b border-zinc-100 px-3 py-2">
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">
+                    Organization
+                  </p>
+                  <p className="mt-0.5 text-[13px] font-medium text-zinc-700">
+                    {activeOrg.name}
+                  </p>
+                </div>
+              )}
               <button
                 onClick={handleLogout}
                 className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-zinc-600 transition-colors hover:bg-zinc-50"

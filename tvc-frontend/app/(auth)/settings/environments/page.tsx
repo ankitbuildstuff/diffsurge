@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import { Server, Plus, Trash2, Settings } from "lucide-react";
+import { Server, Plus, Trash2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -23,7 +23,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingPage } from "@/components/ui/loading-spinner";
@@ -32,16 +31,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { environmentsApi } from "@/lib/api/environments";
 import { toast } from "sonner";
-
-interface Environment {
-  id: string;
-  name: string;
-  slug: string;
-  base_url: string;
-  description: string;
-  is_default: boolean;
-  created_at: string;
-}
 
 function EnvironmentsPageContent() {
   const searchParams = useSearchParams();
@@ -224,9 +213,9 @@ function EnvironmentsPageContent() {
                   <div className="flex items-center gap-2">
                     <Server size={18} className="text-zinc-500" />
                     <CardTitle className="text-lg">{env.name}</CardTitle>
-                    {env.is_default && (
+                    {env.is_source && (
                       <Badge variant="info" className="text-xs">
-                        Default
+                        Source
                       </Badge>
                     )}
                   </div>
@@ -235,25 +224,12 @@ function EnvironmentsPageContent() {
                     size="sm"
                     className="text-red-600"
                     onClick={() => deleteMutation.mutate(env.id)}
-                    disabled={env.is_default}
                   >
                     <Trash2 size={14} />
                   </Button>
                 </div>
-                <CardDescription>
-                  {env.description || "No description"}
-                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div>
-                  <Label className="text-xs text-zinc-500">Slug</Label>
-                  <div className="mt-1 flex items-center gap-2">
-                    <code className="text-sm font-mono text-zinc-900">
-                      {env.slug}
-                    </code>
-                    <CopyButton value={env.slug} />
-                  </div>
-                </div>
                 <div>
                   <Label className="text-xs text-zinc-500">Base URL</Label>
                   <div className="mt-1 flex items-center gap-2">

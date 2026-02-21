@@ -85,17 +85,17 @@ export function Sidebar() {
       <div className="border-t border-zinc-100 p-2">
         <div
           className={cn(
-            "rounded-lg bg-zinc-50 p-3",
-            collapsed && "p-2"
+            "flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200/60 p-3",
+            collapsed && "justify-center p-2"
           )}
         >
+          <span className="inline-flex items-center rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">
+            Beta
+          </span>
           {!collapsed && (
-            <>
-              <p className="text-xs font-medium text-zinc-600">Free Plan</p>
-              <p className="mt-0.5 text-[11px] text-zinc-400">
-                Upgrade for traffic capture
-              </p>
-            </>
+            <p className="text-[11px] font-medium text-amber-700">
+              Early access preview
+            </p>
           )}
         </div>
       </div>

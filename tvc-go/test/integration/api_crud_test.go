@@ -1,0 +1,296 @@
+package integration
+
+import (
+	"bytes"
+	"context"
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+
+	"github.com/google/uuid"
+	_ "github.com/lib/pq"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
+	"github.com/tvc-org/tvc/internal/api"
+	"github.com/tvc-org/tvc/internal/api/middleware"
+	"github.com/tvc-org/tvc/internal/models"
+	"github.com/tvc-org/tvc/internal/storage"
+	"github.com/tvc-org/tvc/pkg/logger"
+)
+
+// setupTestDB creates a PostgreSQL container and returns the connection string
+func setupTestDB(t *testing.T) (string, func()) {
+	ctx := context.Background()
+
+	req := testcontainers.ContainerRequest{
+		Image:        "postgres:16-alpine",
+		ExposedPorts: []string{"5432/tcp"},
+		Env: map[string]string{
+			"POSTGRES_USER":     "testuser",
+			"POSTGRES_PASSWORD": "testpass",
+			"POSTGRES_DB":       "testdb",
+		},
+		WaitingFor: wait.ForLog("database system is ready to accept connections").
+			WithOccurrence(2).
+			WithStartupTimeout(60 * time.Second),
+	}
+
+	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
+	})
+	require.NoError(t, err)
+
+	host, err := container.Host(ctx)
+	require.NoError(t, err)
+
+	port, err := container.MappedPort(ctx, "5432")
+	require.NoError(t, err)
+
+	connStr := fmt.Sprintf("postgres://testuser:testpass@%s:%s/testdb?sslmode=disable",
+		host, port.Port())
+
+	cleanup := func() {
+		if err := container.Terminate(ctx); err != nil {
+			t.Logf("failed to terminate container: %v", err)
+		}
+	}
+
+	return connStr, cleanup
+}
+
+// runMigrations applies the database schema
+func runMigrations(t *testing.T, connStr string) {
+	ctx := context.Background()
+
+	// Connect directly for migrations
+	db, err := sql.Open("postgres", connStr)
+	require.NoError(t, err)
+	defer db.Close()
+
+	// Create tables (simplified schema for testing)
+	migrations := []string{
+		`CREATE TABLE IF NOT EXISTS organizations (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			name VARCHAR(255) NOT NULL,
+			slug VARCHAR(100) UNIQUE NOT NULL,
+			created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+			updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+		)`,
+		`CREATE TABLE IF NOT EXISTS projects (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+			name VARCHAR(255) NOT NULL,
+			description TEXT,
+			created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+			updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+		)`,
+		`CREATE TABLE IF NOT EXISTS environments (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+			name VARCHAR(100) NOT NULL,
+			base_url VARCHAR(500) NOT NULL,
+			is_source BOOLEAN NOT NULL DEFAULT false,
+			created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+		)`,
+	}
+
+	for _, migration := range migrations {
+		_, err := db.ExecContext(ctx, migration)
+		require.NoError(t, err)
+	}
+}
+
+// TestAPICRUDLifecycle tests the full CRUD lifecycle for projects and environments
+func TestAPICRUDLifecycle(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test in short mode")
+	}
+
+	// Setup test database
+	connStr, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	// Run migrations first
+	runMigrations(t, connStr)
+
+	// Connect to database
+	store, err := storage.NewPostgresStore(connStr)
+	require.NoError(t, err)
+	defer store.Close()
+
+	// Setup HTTP server
+	log := logger.New("info", "text")
+	deps := api.ServerDeps{
+		Store: store,
+		Log:   log,
+		AuthConfig: middleware.AuthConfig{
+			JWTSecret: "test-secret",
+		},
+	}
+	router := api.NewRouter(deps)
+
+	// Create test organization
+	ctx := context.Background()
+	org := &models.Organization{
+		ID:        uuid.New(),
+		Name:      "Test Org",
+		Slug:      "test-org",
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+	err = store.CreateOrganization(ctx, org)
+	require.NoError(t, err)
+
+	t.Run("Project CRUD", func(t *testing.T) {
+		// CREATE: Create a new project
+		createReq := map[string]interface{}{
+			"name":        "Test Project",
+			"description": "Integration test project",
+		}
+		body, _ := json.Marshal(createReq)
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/projects", bytes.NewReader(body))
+		req.SetPathValue("org_id", org.ID.String())
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusCreated, w.Code)
+		var createResp struct {
+			Data models.Project `json:"data"`
+		}
+		err := json.NewDecoder(w.Body).Decode(&createResp)
+		require.NoError(t, err)
+		projectID := createResp.Data.ID
+
+		// READ: Get the project
+		req = httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/projects/%s", projectID), nil)
+		req.SetPathValue("id", projectID.String())
+		w = httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		var getResp struct {
+			Data models.Project `json:"data"`
+		}
+		err = json.NewDecoder(w.Body).Decode(&getResp)
+		require.NoError(t, err)
+		assert.Equal(t, "Test Project", getResp.Data.Name)
+
+		// UPDATE: Update the project
+		updateReq := map[string]interface{}{
+			"name": "Updated Test Project",
+		}
+		body, _ = json.Marshal(updateReq)
+		req = httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/projects/%s", projectID), bytes.NewReader(body))
+		req.SetPathValue("id", projectID.String())
+		w = httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		// LIST: List projects
+		req = httptest.NewRequest(http.MethodGet, "/api/v1/projects", nil)
+		w = httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		var listResp struct {
+			Data []models.Project `json:"data"`
+		}
+		err = json.NewDecoder(w.Body).Decode(&listResp)
+		require.NoError(t, err)
+		assert.GreaterOrEqual(t, len(listResp.Data), 1)
+
+		// DELETE: Delete the project
+		req = httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/projects/%s", projectID), nil)
+		req.SetPathValue("id", projectID.String())
+		w = httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNoContent, w.Code)
+
+		// Verify deletion
+		req = httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/projects/%s", projectID), nil)
+		req.SetPathValue("id", projectID.String())
+		w = httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("Environment CRUD", func(t *testing.T) {
+		// Create a project first
+		project := &models.Project{
+			ID:             uuid.New(),
+			OrganizationID: org.ID,
+			Name:           "Test Project for Env",
+			CreatedAt:      time.Now(),
+			UpdatedAt:      time.Now(),
+		}
+		err := store.CreateProject(ctx, project)
+		require.NoError(t, err)
+
+		// CREATE: Create environment
+		createReq := map[string]interface{}{
+			"name":      "staging",
+			"base_url":  "https://staging.example.com",
+			"is_source": false,
+		}
+		body, _ := json.Marshal(createReq)
+		req := httptest.NewRequest(http.MethodPost,
+			fmt.Sprintf("/api/v1/projects/%s/environments", project.ID),
+			bytes.NewReader(body))
+		req.SetPathValue("id", project.ID.String())
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusCreated, w.Code)
+
+		// LIST: List environments
+		req = httptest.NewRequest(http.MethodGet,
+			fmt.Sprintf("/api/v1/projects/%s/environments", project.ID), nil)
+		req.SetPathValue("id", project.ID.String())
+		w = httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		var listResp struct {
+			Data []models.Environment `json:"data"`
+		}
+		err = json.NewDecoder(w.Body).Decode(&listResp)
+		require.NoError(t, err)
+		assert.GreaterOrEqual(t, len(listResp.Data), 1)
+		envID := listResp.Data[0].ID
+
+		// UPDATE: Update environment
+		updateReq := map[string]interface{}{
+			"name": "production",
+		}
+		body, _ = json.Marshal(updateReq)
+		req = httptest.NewRequest(http.MethodPut,
+			fmt.Sprintf("/api/v1/projects/%s/environments/%s", project.ID, envID),
+			bytes.NewReader(body))
+		req.SetPathValue("id", project.ID.String())
+		req.SetPathValue("envId", envID.String())
+		w = httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		// DELETE: Delete environment
+		req = httptest.NewRequest(http.MethodDelete,
+			fmt.Sprintf("/api/v1/projects/%s/environments/%s", project.ID, envID), nil)
+		req.SetPathValue("id", project.ID.String())
+		req.SetPathValue("envId", envID.String())
+		w = httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNoContent, w.Code)
+	})
+}

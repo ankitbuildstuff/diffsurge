@@ -289,6 +289,105 @@ func (s *PostgresStore) UpdateAPIKeyLastUsed(ctx context.Context, id uuid.UUID) 
 	return nil
 }
 
+// ── Audit Logs ──────────────────────────────────────────────────────────────
+
+func (s *PostgresStore) CreateAuditLog(ctx context.Context, log *models.AuditLog) error {
+	_, err := s.db.ExecContext(ctx,
+		`INSERT INTO audit_logs (
+			id, organization_id, user_id, action, resource_type, resource_id,
+			details, ip_address, user_agent, created_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+		log.ID, log.OrganizationID, log.UserID, log.Action, log.ResourceType,
+		log.ResourceID, log.Details, log.IPAddress, log.UserAgent, log.CreatedAt,
+	)
+	if err != nil {
+		return fmt.Errorf("creating audit log: %w", err)
+	}
+	return nil
+}
+
+func (s *PostgresStore) ListAuditLogs(ctx context.Context, filter models.AuditLogFilter) ([]models.AuditLog, error) {
+	query := `
+		SELECT id, organization_id, user_id, action, resource_type, resource_id,
+		       details, ip_address, user_agent, created_at
+		FROM audit_logs
+		WHERE organization_id = $1
+	`
+	args := []interface{}{filter.OrganizationID}
+	argIdx := 2
+
+	if filter.UserID != nil {
+		query += fmt.Sprintf(" AND user_id = $%d", argIdx)
+		args = append(args, *filter.UserID)
+		argIdx++
+	}
+
+	if filter.Action != nil {
+		query += fmt.Sprintf(" AND action = $%d", argIdx)
+		args = append(args, *filter.Action)
+		argIdx++
+	}
+
+	if filter.ResourceType != nil {
+		query += fmt.Sprintf(" AND resource_type = $%d", argIdx)
+		args = append(args, *filter.ResourceType)
+		argIdx++
+	}
+
+	if filter.StartTime != nil {
+		query += fmt.Sprintf(" AND created_at >= $%d", argIdx)
+		args = append(args, *filter.StartTime)
+		argIdx++
+	}
+
+	if filter.EndTime != nil {
+		query += fmt.Sprintf(" AND created_at <= $%d", argIdx)
+		args = append(args, *filter.EndTime)
+		argIdx++
+	}
+
+	query += " ORDER BY created_at DESC"
+
+	if filter.Limit > 0 {
+		query += fmt.Sprintf(" LIMIT $%d", argIdx)
+		args = append(args, filter.Limit)
+		argIdx++
+	}
+
+	if filter.Offset > 0 {
+		query += fmt.Sprintf(" OFFSET $%d", argIdx)
+		args = append(args, filter.Offset)
+	}
+
+	rows, err := s.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("querying audit logs: %w", err)
+	}
+	defer rows.Close()
+
+	var logs []models.AuditLog
+	for rows.Next() {
+		var log models.AuditLog
+		err := rows.Scan(
+			&log.ID, &log.OrganizationID, &log.UserID, &log.Action,
+			&log.ResourceType, &log.ResourceID, &log.Details,
+			&log.IPAddress, &log.UserAgent, &log.CreatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("scanning audit log: %w", err)
+		}
+		logs = append(logs, log)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterating audit logs: %w", err)
+	}
+
+	return logs, nil
+}
+
+// ── Traffic ─────────────────────────────────────────────────────────────────
+
 func (s *PostgresStore) SaveTrafficLog(log *models.TrafficLog) error {
 	queryParams, _ := json.Marshal(log.QueryParams)
 	reqHeaders, _ := json.Marshal(log.RequestHeaders)

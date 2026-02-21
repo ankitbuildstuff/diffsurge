@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import { Key, Plus, Trash2, Eye, EyeOff, Copy } from "lucide-react";
+import { Key, Plus, Trash2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -31,65 +31,59 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingPage } from "@/components/ui/loading-spinner";
 import { CopyButton } from "@/components/ui/copy-button";
 import { useState } from "react";
 import Link from "next/link";
-
-interface ApiKey {
-  id: string;
-  name: string;
-  key: string;
-  prefix: string;
-  created_at: string;
-  last_used_at: string | null;
-  expires_at: string | null;
-}
+import { apiKeysApi } from "@/lib/api/api-keys";
+import { toast } from "sonner";
 
 function ApiKeysPageContent() {
   const searchParams = useSearchParams();
-  const projectId = searchParams.get("project") || "";
+  const orgId = searchParams.get("org") || "";
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [keyName, setKeyName] = useState("");
   const [newKey, setNewKey] = useState<string | null>(null);
-  const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set());
 
-  // TODO: Replace with actual API call
   const { data: keys, isLoading } = useQuery({
-    queryKey: ["api-keys", projectId],
+    queryKey: ["api-keys", orgId],
     queryFn: async () => {
-      // Placeholder - replace with actual API
-      return [] as ApiKey[];
+      if (!orgId) return [];
+      return await apiKeysApi.list(orgId);
     },
-    enabled: !!projectId,
+    enabled: !!orgId,
+    staleTime: 30_000,
   });
 
   const createMutation = useMutation({
     mutationFn: async (name: string) => {
-      // TODO: Replace with actual API call
-      console.log("Creating API key:", name);
-      return {
-        key: "tvc_" + Math.random().toString(36).substring(2, 15),
-      };
+      if (!orgId) throw new Error("Organization ID required");
+      return await apiKeysApi.create(orgId, { name });
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["api-keys"] });
+      queryClient.invalidateQueries({ queryKey: ["api-keys", orgId] });
       setNewKey(data.key);
       setKeyName("");
+      toast.success("API key created successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to create API key");
     },
   });
 
   const revokeMutation = useMutation({
     mutationFn: async (keyId: string) => {
-      // TODO: Replace with actual API call
-      console.log("Revoking key:", keyId);
-      return { success: true };
+      if (!orgId) throw new Error("Organization ID required");
+      await apiKeysApi.delete(orgId, keyId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["api-keys"] });
+      queryClient.invalidateQueries({ queryKey: ["api-keys", orgId] });
+      toast.success("API key revoked");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to revoke API key");
     },
   });
 
@@ -98,33 +92,18 @@ function ApiKeysPageContent() {
     createMutation.mutate(keyName);
   };
 
-  const toggleReveal = (keyId: string) => {
-    setRevealedKeys((prev) => {
-      const next = new Set(prev);
-      if (next.has(keyId)) {
-        next.delete(keyId);
-      } else {
-        next.add(keyId);
-      }
-      return next;
-    });
-  };
-
-  const maskKey = (key: string) => {
-    const prefix = key.substring(0, 8);
-    return `${prefix}${"•".repeat(32)}`;
-  };
+  const maskKey = (prefix: string) => `${prefix}${"•".repeat(32)}`;
 
   if (isLoading) {
     return <LoadingPage />;
   }
 
-  if (!projectId) {
+  if (!orgId) {
     return (
       <EmptyState
         icon={<Key size={28} className="text-zinc-400" />}
-        title="No project selected"
-        description="Select a project to manage API keys."
+        title="No organization selected"
+        description="Select an organization to manage API keys."
         action={
           <Link href="/settings">
             <Button>Go to Settings</Button>
@@ -140,7 +119,7 @@ function ApiKeysPageContent() {
         <div>
           <h1 className="text-2xl font-semibold text-zinc-900">API Keys</h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Manage API keys for programmatic access to this project
+            Manage API keys for programmatic access
           </p>
         </div>
 
@@ -148,9 +127,7 @@ function ApiKeysPageContent() {
           open={createOpen}
           onOpenChange={(open) => {
             setCreateOpen(open);
-            if (!open) {
-              setNewKey(null);
-            }
+            if (!open) setNewKey(null);
           }}
         >
           <DialogTrigger asChild>
@@ -165,7 +142,8 @@ function ApiKeysPageContent() {
                 <DialogHeader>
                   <DialogTitle>API Key Created</DialogTitle>
                   <DialogDescription>
-                    Save this key securely. You won't be able to see it again.
+                    Save this key securely. You won&apos;t be able to see it
+                    again.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
@@ -183,7 +161,7 @@ function ApiKeysPageContent() {
                 <DialogHeader>
                   <DialogTitle>Create API key</DialogTitle>
                   <DialogDescription>
-                    Generate a new API key for this project.
+                    Generate a new API key for programmatic access.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
@@ -228,7 +206,7 @@ function ApiKeysPageContent() {
         <CardHeader>
           <CardTitle>Active Keys</CardTitle>
           <CardDescription>
-            API keys allow access to the TVC API for this project
+            API keys allow programmatic access to the TVC API
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -262,21 +240,9 @@ function ApiKeysPageContent() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <code className="text-sm font-mono text-zinc-600">
-                          {revealedKeys.has(key.id)
-                            ? key.key
-                            : maskKey(key.key)}
+                          {maskKey(key.key_prefix)}
                         </code>
-                        <button
-                          onClick={() => toggleReveal(key.id)}
-                          className="text-zinc-400 hover:text-zinc-600"
-                        >
-                          {revealedKeys.has(key.id) ? (
-                            <EyeOff size={14} />
-                          ) : (
-                            <Eye size={14} />
-                          )}
-                        </button>
-                        <CopyButton value={key.key} />
+                        <CopyButton value={key.key_prefix} />
                       </div>
                     </TableCell>
                     <TableCell className="text-zinc-500">
@@ -291,8 +257,9 @@ function ApiKeysPageContent() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-red-600"
+                        className="text-red-600 hover:text-red-700"
                         onClick={() => revokeMutation.mutate(key.id)}
+                        disabled={revokeMutation.isPending}
                       >
                         <Trash2 size={14} />
                         Revoke
@@ -313,7 +280,7 @@ function ApiKeysPageContent() {
         <CardContent>
           <pre className="rounded-lg bg-zinc-900 p-4 text-sm text-zinc-100 overflow-x-auto">
             <code>{`curl -H "Authorization: Bearer YOUR_API_KEY" \\
-  https://api.tvc.dev/v1/projects/{projectId}/traffic`}</code>
+  https://api.driftsurge.dev/v1/projects/{projectId}/traffic`}</code>
           </pre>
         </CardContent>
       </Card>

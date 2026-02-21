@@ -148,7 +148,7 @@ function SchemaDiffPageContent() {
         baseVersion,
         compareVersion,
       );
-      return response.data.diff_report as SchemaDiff;
+      return response.data.diff_report as unknown as SchemaDiff;
     },
     enabled: !!baseVersion && !!compareVersion,
   });
@@ -201,7 +201,7 @@ function SchemaDiffPageContent() {
                   {versions?.map((version) => (
                     <SelectItem key={version.id} value={version.id}>
                       v{version.version} •{" "}
-                      {new Date(version.uploaded_at).toLocaleDateString()}
+                      {new Date(version.created_at).toLocaleDateString()}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -226,7 +226,7 @@ function SchemaDiffPageContent() {
                     .map((version) => (
                       <SelectItem key={version.id} value={version.id}>
                         v{version.version} •{" "}
-                        {new Date(version.uploaded_at).toLocaleDateString()}
+                        {new Date(version.created_at).toLocaleDateString()}
                       </SelectItem>
                     ))}
                 </SelectContent>
@@ -324,11 +324,11 @@ function SchemaDiffPageContent() {
           <CardContent>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <SchemaViewer
-                schema={baseSchema.schema}
+                schema={baseSchema.schema_content as Record<string, unknown>}
                 title={`Base (v${baseSchema.version})`}
               />
               <SchemaViewer
-                schema={compareSchema.schema}
+                schema={compareSchema.schema_content as Record<string, unknown>}
                 title={`Compare (v${compareSchema.version})`}
               />
             </div>

@@ -32,51 +32,54 @@ import { LoadingPage } from "@/components/ui/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Link from "next/link";
-
-interface AuditLog {
-  id: string;
-  timestamp: string;
-  user_email: string;
-  action: string;
-  resource_type: string;
-  resource_id: string;
-  details: Record<string, unknown>;
-  ip_address: string;
-}
+import { auditApi, AuditAction } from "@/lib/api/audit";
 
 const actionBadgeVariant = (action: string) => {
-  if (action.includes("create")) return "success";
-  if (action.includes("delete")) return "error";
-  if (action.includes("update")) return "warning";
+  if (action === "create" || action === "invite") return "success";
+  if (action === "delete" || action === "remove") return "error";
+  if (action === "update") return "warning";
   return "default";
 };
 
 function AuditLogPageContent() {
   const searchParams = useSearchParams();
-  const projectId = searchParams.get("project") || "";
+  const orgId = searchParams.get("org") || "";
   const [actionFilter, setActionFilter] = useState<string>("all");
   const [resourceFilter, setResourceFilter] = useState<string>("all");
 
-  // TODO: Replace with actual API call
   const { data: logs, isLoading } = useQuery({
-    queryKey: ["audit-logs", projectId, actionFilter, resourceFilter],
+    queryKey: ["audit-logs", orgId, actionFilter, resourceFilter],
     queryFn: async () => {
-      // Placeholder - replace with actual API
-      return [] as AuditLog[];
+      if (!orgId) return [];
+
+      const filter: any = {
+        limit: 100,
+      };
+
+      if (actionFilter !== "all") {
+        filter.action = actionFilter as AuditAction;
+      }
+
+      if (resourceFilter !== "all") {
+        filter.resource_type = resourceFilter;
+      }
+
+      return await auditApi.list(orgId, filter);
     },
-    enabled: !!projectId,
+    enabled: !!orgId,
+    staleTime: 10_000, // 10 seconds
   });
 
   if (isLoading) {
     return <LoadingPage />;
   }
 
-  if (!projectId) {
+  if (!orgId) {
     return (
       <EmptyState
         icon={<Activity size={28} className="text-zinc-400" />}
-        title="No project selected"
-        description="Select a project to view audit logs."
+        title="No organization selected"
+        description="Select an organization to view audit logs."
         action={
           <Link href="/settings">
             <Button>Go to Settings</Button>
@@ -160,13 +163,15 @@ function AuditLogPageContent() {
                     <TableCell className="text-zinc-500">
                       <div className="flex items-center gap-1.5">
                         <Clock size={14} />
-                        {new Date(log.timestamp).toLocaleString()}
+                        {new Date(log.created_at).toLocaleString()}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1.5">
                         <User size={14} className="text-zinc-400" />
-                        <span className="font-medium">{log.user_email}</span>
+                        <span className="font-medium">
+                          {log.user_id?.slice(0, 8) || "System"}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -178,15 +183,17 @@ function AuditLogPageContent() {
                       <span className="capitalize">
                         {log.resource_type.replace("_", " ")}
                       </span>
-                      <code className="ml-2 text-xs text-zinc-400">
-                        {log.resource_id.slice(0, 8)}
-                      </code>
+                      {log.resource_id && (
+                        <code className="ml-2 text-xs text-zinc-400">
+                          {log.resource_id.slice(0, 8)}
+                        </code>
+                      )}
                     </TableCell>
                     <TableCell className="max-w-xs truncate text-sm text-zinc-600">
-                      {JSON.stringify(log.details)}
+                      {log.details ? JSON.stringify(log.details) : "-"}
                     </TableCell>
                     <TableCell className="font-mono text-xs text-zinc-400">
-                      {log.ip_address}
+                      {log.ip_address || "-"}
                     </TableCell>
                   </TableRow>
                 ))}

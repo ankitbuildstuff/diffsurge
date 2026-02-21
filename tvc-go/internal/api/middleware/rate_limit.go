@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/tvc-org/tvc/internal/api/response"
 	"github.com/tvc-org/tvc/pkg/logger"
 )
@@ -55,52 +56,40 @@ func RateLimitMiddleware(limiter RateLimiter, config *RateLimitConfig, log *logg
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Get user/org context from auth middleware
-			userID := GetUserID(r.Context()).String()
-			orgID := ""
+			uid := GetUserID(r.Context())
+			authenticated := uid != uuid.Nil
+			userID := uid.String()
 			tier := GetTierFromContext(r.Context())
 
-			// Determine rate limit key and limit
 			var key string
 			var limit int64
 			window := config.DefaultWindow
 
-			// Special endpoint handling
 			switch {
 			case r.URL.Path == "/api/v1/auth/login":
-				// Rate limit by IP for login attempts
 				key = fmt.Sprintf("auth:%s", GetClientIP(r))
 				limit = config.AuthLimit
-				
+
 			case r.URL.Path == "/api/v1/auth/signup":
-				// Rate limit by IP for signup attempts
 				key = fmt.Sprintf("signup:%s", GetClientIP(r))
 				limit = config.AuthLimit
 
 			case r.Method == "POST" && contains(r.URL.Path, "/schemas"):
-				// Rate limit schema uploads per user
 				key = fmt.Sprintf("upload:%s", userID)
 				limit = config.UploadLimit
 				window = 1 * time.Hour
 
 			case r.Method == "POST" && contains(r.URL.Path, "/replays") && contains(r.URL.Path, "/start"):
-				// Rate limit replay starts per user
 				key = fmt.Sprintf("replay:%s", userID)
 				limit = config.ReplayLimit
 
 			default:
-				// General API rate limiting per organization
-				if orgID != "" {
-					key = fmt.Sprintf("api:%s", orgID)
-					limit = getLimitForTier(tier, config)
-				} else if userID != "" {
-					// Fallback to user if no org
+				if authenticated {
 					key = fmt.Sprintf("api:user:%s", userID)
-					limit = config.FreeLimit
+					limit = getLimitForTier(tier, config)
 				} else {
-					// No authentication - rate limit by IP (very restrictive)
 					key = fmt.Sprintf("api:ip:%s", GetClientIP(r))
-					limit = config.FreeLimit / 10 // 10 req/min for unauthenticated
+					limit = config.FreeLimit / 10
 				}
 			}
 
