@@ -270,10 +270,9 @@ func (tc *TrafficCapture) enqueue(r *http.Request, reqBody []byte, rec *response
 		tc.mu.Unlock()
 		return
 	}
-	tc.mu.Unlock()
 
-	// Use Redis if available, fallback to channel
 	if tc.useRedis && tc.redisQueue != nil {
+		tc.mu.Unlock()
 		ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
 		defer cancel()
 
@@ -282,12 +281,12 @@ func (tc *TrafficCapture) enqueue(r *http.Request, reqBody []byte, rec *response
 			tc.dropped.Add(1)
 		}
 	} else {
-		// Use in-memory channel buffer
 		select {
 		case tc.buffer <- trafficLog:
 		default:
 			tc.dropped.Add(1)
 		}
+		tc.mu.Unlock()
 	}
 }
 
