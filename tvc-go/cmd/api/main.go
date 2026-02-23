@@ -40,7 +40,7 @@ func main() {
 		pgURL = cfg.Storage.PostgresURL
 	}
 	if pgURL == "" {
-		pgURL = "postgres://tvc:tvc_dev_pass@localhost:5432/tvc_dev?sslmode=disable"
+		log.Fatal().Msg("TVC_STORAGE_POSTGRES_URL is required (set via env var or config file)")
 	}
 
 	store, err := storage.NewPostgresStore(pgURL)

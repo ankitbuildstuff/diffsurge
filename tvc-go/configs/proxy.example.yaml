@@ -16,8 +16,10 @@ proxy:
     workers: 20
 
 storage:
-  postgres_url: "postgres://tvc:tvc_dev_pass@localhost:5432/tvc_dev?sslmode=disable"
-  redis_url: "redis://localhost:6379"
+  # Set via TVC_STORAGE_POSTGRES_URL env var
+  postgres_url: ""
+  # Set via TVC_STORAGE_REDIS_URL env var
+  redis_url: ""
 
 log:
   level: "info"

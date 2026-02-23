@@ -1,44 +1,6 @@
 services:
   # ──────────────────────────────────────────────────────────────────
-  # Infrastructure Services
-  # ──────────────────────────────────────────────────────────────────
-
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: tvc_dev
-      POSTGRES_USER: tvc
-      POSTGRES_PASSWORD: tvc_dev_pass
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./tvc-frontend/supabase/migrations:/docker-entrypoint-initdb.d:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tvc -d tvc_dev"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - tvc-network
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - tvc-network
-
-  # ──────────────────────────────────────────────────────────────────
-  # TVC Backend Services
+  # TVC Backend Services (using Supabase Postgres + Upstash Redis)
   # ──────────────────────────────────────────────────────────────────
 
   api:
@@ -49,15 +11,13 @@ services:
       - "8080:8080"
     environment:
       - PORT=8080
-      - TVC_STORAGE_POSTGRES_URL=postgres://tvc:tvc_dev_pass@postgres:5432/tvc_dev?sslmode=disable
-      - REDIS_URL=redis://redis:6379
-      - LOG_LEVEL=debug
+      - TVC_STORAGE_POSTGRES_URL=${TVC_STORAGE_POSTGRES_URL}
+      - TVC_STORAGE_REDIS_URL=${TVC_STORAGE_REDIS_URL}
+      - SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
+      - LOG_LEVEL=info
       - LOG_FORMAT=json
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     healthcheck:
       test:
         [
@@ -82,15 +42,10 @@ services:
     ports:
       - "8081:8080"
     environment:
-      - TVC_STORAGE_POSTGRES_URL=postgres://tvc:tvc_dev_pass@postgres:5432/tvc_dev?sslmode=disable
-      - REDIS_URL=redis://redis:6379
-      - LOG_LEVEL=debug
+      - TVC_STORAGE_POSTGRES_URL=${TVC_STORAGE_POSTGRES_URL}
+      - TVC_STORAGE_REDIS_URL=${TVC_STORAGE_REDIS_URL}
+      - LOG_LEVEL=info
       - LOG_FORMAT=json
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     volumes:
       - ./tvc-go/configs/proxy.example.yaml:/app/configs/proxy.yaml:ro
     healthcheck:
@@ -115,15 +70,10 @@ services:
       context: ./tvc-go
       dockerfile: Dockerfile.replayer
     environment:
-      - TVC_STORAGE_POSTGRES_URL=postgres://tvc:tvc_dev_pass@postgres:5432/tvc_dev?sslmode=disable
-      - REDIS_URL=redis://redis:6379
-      - LOG_LEVEL=debug
+      - TVC_STORAGE_POSTGRES_URL=${TVC_STORAGE_POSTGRES_URL}
+      - TVC_STORAGE_REDIS_URL=${TVC_STORAGE_REDIS_URL}
+      - LOG_LEVEL=info
       - LOG_FORMAT=json
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     volumes:
       - ./tvc-go/configs/replayer.example.yaml:/app/configs/replayer.yaml:ro
     networks:
@@ -141,10 +91,12 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8080
-      - NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-      - NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-      - SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      - NEXT_PUBLIC_API_URL=http://localhost:8081
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
     depends_on:
       - api
     healthcheck:
@@ -161,10 +113,6 @@ services:
     networks:
       - tvc-network
     restart: unless-stopped
-
-volumes:
-  postgres_data:
-  redis_data:
 
 networks:
   tvc-network:

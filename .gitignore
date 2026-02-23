@@ -17,14 +17,12 @@ dist/
 .netlify
 
 # Environment files
-.env
 .env.development.local
 .env.test.local
 .env.production.local
-.env*.local
 
-# Exception: track .env.local for team setup (contains Supabase credentials)
-!.env.local
+# Track .env and .env.local for project setup
+# .env is used by docker-compose, .env.local by Next.js
 
 # Logs
 npm-debug.log*

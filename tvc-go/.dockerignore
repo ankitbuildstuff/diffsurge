@@ -56,5 +56,4 @@ docker-compose*.yml
 # Scripts
 scripts/
 
-# Config examples (keep the actual configs)
-*.example.*
+# Keep config files (needed by Dockerfiles)
