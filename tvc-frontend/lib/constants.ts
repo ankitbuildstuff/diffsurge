@@ -92,7 +92,7 @@ export const faqs = [
   },
   {
     q: "Can I integrate Driftsurge into my existing CI/CD pipeline?",
-    a: "Absolutely. The CLI is a single binary that runs on macOS, Linux, and Windows. Add `driftsurge schema diff --fail-on-breaking` to your GitHub Actions, GitLab CI, Jenkins, or CircleCI workflow. It returns exit code 0 for no changes, 1 for breaking changes, and 2 for errors — so your pipeline blocks automatically when a breaking change is detected.",
+    a: "Absolutely. The CLI is a single binary that runs on macOS, Linux, and Windows. Add `surge schema diff --fail-on-breaking` to your GitHub Actions, GitLab CI, Jenkins, or CircleCI workflow. It returns exit code 0 for no changes, 1 for breaking changes, and 2 for errors — so your pipeline blocks automatically when a breaking change is detected.",
   },
   {
     q: "What API schema formats are supported?",

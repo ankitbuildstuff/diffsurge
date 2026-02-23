@@ -33,15 +33,15 @@ Exit codes:
 }
 
 func init() {
-	diffCmd.Flags().StringVar(&diffFileOld, "file-old", "", "Path to the old/original JSON file (required)")
-	diffCmd.Flags().StringVar(&diffFileNew, "file-new", "", "Path to the new/modified JSON file (required)")
+	diffCmd.Flags().StringVar(&diffFileOld, "old", "", "Path to the old/original JSON file (required)")
+	diffCmd.Flags().StringVar(&diffFileNew, "new", "", "Path to the new/modified JSON file (required)")
 	diffCmd.Flags().StringVar(&diffFormat, "format", "text", "Output format: text, json")
 	diffCmd.Flags().StringVar(&diffOutput, "output", "", "Write output to file instead of stdout")
 	diffCmd.Flags().StringSliceVar(&diffIgnore, "ignore", nil, "JSON paths to ignore (comma-separated)")
 	diffCmd.Flags().BoolVar(&diffArrayAsSet, "array-as-set", false, "Compare arrays as sets (ignore order)")
 
-	_ = diffCmd.MarkFlagRequired("file-old")
-	_ = diffCmd.MarkFlagRequired("file-new")
+	_ = diffCmd.MarkFlagRequired("old")
+	_ = diffCmd.MarkFlagRequired("new")
 }
 
 func runDiff(cmd *cobra.Command, args []string) error {

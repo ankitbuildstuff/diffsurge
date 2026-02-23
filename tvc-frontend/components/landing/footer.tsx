@@ -33,15 +33,10 @@ export function Footer() {
           <div className="md:col-span-1">
             <a href="/" className="flex items-center gap-2">
               <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
-                <rect width="28" height="28" rx="7" fill="#fafafa" />
-                <path
-                  d="M8 10L14 7L20 10V18L14 21L8 18V10Z"
-                  stroke="#09090b"
-                  strokeWidth="1.5"
-                  strokeLinejoin="round"
-                />
-                <path d="M14 14V21" stroke="#09090b" strokeWidth="1.5" />
-                <path d="M8 10L14 14L20 10" stroke="#09090b" strokeWidth="1.5" />
+                <rect width="28" height="28" rx="6" fill="#18181B" />
+                <path d="M7 10l7-4 7 4-7 4-7-4z" fill="#A1A1AA" />
+                <path d="M7 14l7 4 7-4" stroke="#fff" strokeWidth="1.5" />
+                <path d="M7 18l7 4 7-4" stroke="#71717A" strokeWidth="1.5" />
               </svg>
               <span className="text-[14px] font-semibold text-zinc-100">
                 {siteConfig.name}

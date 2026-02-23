@@ -9,16 +9,17 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "tvc",
-	Short: "TVC - Traffic Version Control for APIs",
-	Long: `TVC (Traffic Version Control) is a developer tool for API governance.
+	Use:   "surge",
+	Short: "Driftsurge - Catch breaking API changes before your users do",
+	Long: `Driftsurge is a developer tool for API governance.
 
 It provides schema diffing, traffic capture & replay, and breaking change detection
 to help teams ship API changes with confidence.
 
 Usage:
-  tvc diff --file-old old.json --file-new new.json
-  tvc schema diff --file-old v1.yaml --file-new v2.yaml --breaking-only`,
+  surge diff --old api-v1.json --new api-v2.json
+  surge schema diff --old v1.yaml --new v2.yaml --fail-on-breaking
+  surge replay --source traffic.json --target http://staging.example.com`,
 }
 
 func Execute() {
@@ -36,8 +37,8 @@ func init() {
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Print the version of TVC",
+	Short: "Print the version of Driftsurge",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("tvc version %s\n", config.Version)
+		fmt.Printf("surge version %s\n", config.Version)
 	},
 }

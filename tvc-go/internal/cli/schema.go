@@ -43,15 +43,15 @@ Exit codes:
 }
 
 func init() {
-	schemaDiffCmd.Flags().StringVar(&schemaFileOld, "file-old", "", "Path to the old schema file (required)")
-	schemaDiffCmd.Flags().StringVar(&schemaFileNew, "file-new", "", "Path to the new schema file (required)")
+	schemaDiffCmd.Flags().StringVar(&schemaFileOld, "old", "", "Path to the old schema file (required)")
+	schemaDiffCmd.Flags().StringVar(&schemaFileNew, "new", "", "Path to the new schema file (required)")
 	schemaDiffCmd.Flags().StringVar(&schemaFormat, "format", "text", "Output format: text, json")
 	schemaDiffCmd.Flags().StringVar(&schemaOutput, "output", "", "Write output to file")
 	schemaDiffCmd.Flags().BoolVar(&schemaBreakingOnly, "breaking-only", false, "Show only breaking changes")
 	schemaDiffCmd.Flags().BoolVar(&schemaFailOnBreaking, "fail-on-breaking", false, "Exit with code 1 if breaking changes found")
 
-	_ = schemaDiffCmd.MarkFlagRequired("file-old")
-	_ = schemaDiffCmd.MarkFlagRequired("file-new")
+	_ = schemaDiffCmd.MarkFlagRequired("old")
+	_ = schemaDiffCmd.MarkFlagRequired("new")
 
 	schemaCmd.AddCommand(schemaDiffCmd)
 }

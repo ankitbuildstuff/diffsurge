@@ -13,7 +13,7 @@ function TerminalVisual() {
         schema-diff.sh
       </div>
       <div className="bg-[#0a0a0f] px-3.5 py-3 text-zinc-500 space-y-0.5">
-        <p><span className="text-teal-400">$</span> driftsurge schema diff --fail-on-breaking</p>
+        <p><span className="text-teal-400">$</span> surge schema diff --fail-on-breaking</p>
         <p className="text-zinc-600 mt-1">Comparing 47 endpoints…</p>
         <p className="text-red-400 mt-1">✗ BREAKING  POST /api/users</p>
         <p className="text-zinc-600 ml-4">└─ Required field removed: &quot;email_verified&quot;</p>

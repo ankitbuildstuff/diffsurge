@@ -27,7 +27,7 @@ function TerminalMockup() {
         {/* Terminal body */}
         <div className="bg-[#0a0a0f] p-5 font-mono text-[12px] leading-[1.8]">
           <p className="text-zinc-500">
-            <span className="text-teal-400">$</span> driftsurge schema diff
+            <span className="text-teal-400">$</span> surge schema diff
             --old api-v1.yaml --new api-v2.yaml
           </p>
           <p className="mt-2.5 text-zinc-500">Comparing 47 endpoints…</p>

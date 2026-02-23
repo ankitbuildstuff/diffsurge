@@ -3,7 +3,20 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const publicPaths = ["/", "/login", "/signup", "/forgot-password", "/verify-email", "/reset-password", "/auth/callback"];
 
+const authPages = ["/login", "/signup"];
+
+function isPublicPath(pathname: string): boolean {
+  return publicPaths.some((p) => pathname === p);
+}
+
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Landing page and other purely public paths: skip auth check entirely
+  if (pathname === "/" || pathname === "/auth/callback") {
+    return NextResponse.next();
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -15,7 +28,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
           supabaseResponse = NextResponse.next({ request });
@@ -31,21 +44,14 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isPublicPath = publicPaths.some(
-    (p) => request.nextUrl.pathname === p
-  );
-  const isAuthPath =
-    request.nextUrl.pathname === "/login" ||
-    request.nextUrl.pathname === "/signup";
-
-  if (!user && !isPublicPath) {
+  if (!user && !isPublicPath(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    url.searchParams.set("redirect", request.nextUrl.pathname);
+    url.searchParams.set("redirect", pathname);
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthPath) {
+  if (user && authPages.includes(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

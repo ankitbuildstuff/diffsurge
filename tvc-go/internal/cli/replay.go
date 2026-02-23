@@ -34,8 +34,8 @@ var replayCmd = &cobra.Command{
 Can replay from a JSON file of captured traffic or from the database.
 
 Examples:
-  tvc replay --source traffic.json --target http://staging.example.com
-  tvc replay --source traffic.json --target http://localhost:8080 --workers 20 --rate-limit 500`,
+  surge replay --source traffic.json --target http://staging.example.com
+  surge replay --source traffic.json --target http://localhost:8080 --workers 20 --rate-limit 500`,
 	RunE: runReplay,
 }
 

@@ -1,56 +1,44 @@
 # ============================================================================
-# TVC CLI - Multi-stage Docker Build
+# Driftsurge CLI - Multi-stage Docker Build
 # Final image size target: < 20MB
 # ============================================================================
 
 # Stage 1: Builder
 FROM golang:1.24-alpine AS builder
 
-# Install build dependencies
 RUN apk add --no-cache git ca-certificates tzdata
 
 WORKDIR /build
 
-# Copy go mod files
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy source code
 COPY cmd/ ./cmd/
 COPY internal/ ./internal/
 COPY pkg/ ./pkg/
 
-# Build the CLI binary
-# CGO_ENABLED=0 for static binary
-# -ldflags to reduce binary size
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags="-w -s -X github.com/tvc-org/tvc/internal/config.Version=$(git describe --tags --always --dirty)" \
-    -o tvc \
+    -o surge \
     ./cmd/cli/main.go
 
 # Stage 2: Final minimal image
 FROM alpine:3.19
 
-# Install runtime dependencies
 RUN apk add --no-cache ca-certificates
 
-# Create non-root user
-RUN addgroup -g 1000 tvc && \
-    adduser -D -u 1000 -G tvc tvc
+RUN addgroup -g 1000 surge && \
+    adduser -D -u 1000 -G surge surge
 
 WORKDIR /app
 
-# Copy binary from builder
-COPY --from=builder /build/tvc /app/tvc
+COPY --from=builder /build/surge /app/surge
 
-# Set ownership
-RUN chown -R tvc:tvc /app
+RUN chown -R surge:surge /app
 
-# Switch to non-root user
-USER tvc
+USER surge
 
-# Health check (CLI doesn't need one, but for compatibility)
 HEALTHCHECK NONE
 
-ENTRYPOINT ["/app/tvc"]
+ENTRYPOINT ["/app/surge"]
 CMD ["--help"]

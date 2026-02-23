@@ -5,57 +5,56 @@ import { FadeIn } from "@/components/ui/fade-in";
 const steps = [
   {
     number: "01",
-    title: "Install the CLI",
+    title: "Diff your API schemas",
     description:
-      "One command to install. One command to integrate. Driftsurge outputs machine-readable JSON and human-readable reports — perfect for CI/CD gates and local development alike.",
-    code: `$ npm install -g @driftsurge/cli
-$ driftsurge init
-  ✓ Config created: .driftsurge.yaml
-  ✓ GitHub Actions template generated
-
-$ driftsurge schema diff \\
+      "One binary, zero dependencies. Surge compares OpenAPI, GraphQL, and gRPC schemas — flagging every breaking change with severity and a JSON path. Perfect for CI/CD gates.",
+    code: `$ surge schema diff \\
     --old api-v1.yaml \\
     --new api-v2.yaml \\
     --fail-on-breaking
 
-  ✓ 45 endpoints compared
-  ✗ 1 breaking change detected
-  ▸ Report saved to ./drift-report.json`,
+  Comparing 47 endpoints…
+
+  ✗ BREAKING  POST /api/users
+    └─ Required field removed: "email_verified"
+  ⚠ WARNING   GET /api/users/:id
+    └─ Type changed: "age" string → number
+  ✓ SAFE      45 endpoints unchanged
+
+  1 breaking · 1 warning — exit code 1`,
   },
   {
     number: "02",
     title: "Capture production traffic",
     description:
       "Deploy the proxy as a sidecar or standalone container. It samples real traffic, strips PII, and buffers asynchronously — adding less than 5 ms of latency to the request path.",
-    code: `$ driftsurge proxy start \\
-    --target api.example.com \\
-    --port 8080 \\
-    --sample-rate 0.1
+    code: `# Deploy via Docker
+$ docker run -d driftsurge/proxy \\
+    -e TVC_STORAGE_POSTGRES_URL=... \\
+    -e TVC_STORAGE_REDIS_URL=... \\
+    -p 8081:8080
 
   ▸ Proxy listening on :8080
-  ▸ Forwarding to api.example.com
   ▸ Sampling 10% of traffic
   ▸ PII redaction: enabled
-  ▸ Buffer: 10,000 slots / 20 workers
-  ▸ Press Ctrl+C to stop`,
+  ▸ Buffer: 10,000 slots / 20 workers`,
   },
   {
     number: "03",
     title: "Replay and compare",
     description:
       "Point the replay engine at your staging build. It fires captured requests at configurable concurrency, semantically compares every response, and produces a drift report — sorted by severity.",
-    code: `$ driftsurge replay \\
-    --source prod \\
-    --target staging \\
-    --concurrency 200
+    code: `$ surge replay \\
+    --source traffic.json \\
+    --target http://staging.example.com \\
+    --workers 20
 
   Replaying 1,247 requests...
-  ████████████████████████████ 100%
 
   ✓ 1,241 responses matched (99.5%)
   ⚠ 4 warnings  (type coercion)
   ✗ 2 breaking   (missing fields)
-  ▸ Full report → https://app.driftsurge.dev/r/3f7a2c`,
+  ▸ Report saved to drift-report.json`,
   },
 ];
 
