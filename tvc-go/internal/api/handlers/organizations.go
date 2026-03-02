@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/tvc-org/tvc/internal/api/middleware"
 	"github.com/tvc-org/tvc/internal/api/request"
 	"github.com/tvc-org/tvc/internal/api/response"
 	"github.com/tvc-org/tvc/internal/models"
@@ -69,6 +70,13 @@ func (h *OrganizationHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID := middleware.GetUserID(r.Context())
+	if userID != uuid.Nil {
+		if err := h.store.AddOrganizationMember(r.Context(), org.ID, userID, "owner"); err != nil {
+			h.log.Error().Err(err).Msg("failed to add owner to new organization")
+		}
+	}
+
 	response.Created(w, org)
 }
 
@@ -96,10 +104,25 @@ func (h *OrganizationHandler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *OrganizationHandler) List(w http.ResponseWriter, r *http.Request) {
-	// For now, this would need the user's orgs from auth context
-	// Placeholder: returns empty list until org membership is wired
+	userID := middleware.GetUserID(r.Context())
+	if userID == uuid.Nil {
+		response.Unauthorized(w, "User not authenticated")
+		return
+	}
+
+	orgs, err := h.store.ListUserOrganizations(r.Context(), userID)
+	if err != nil {
+		h.log.Error().Err(err).Msg("failed to list organizations")
+		response.InternalError(w)
+		return
+	}
+
+	if orgs == nil {
+		orgs = []models.Organization{}
+	}
+
 	response.JSON(w, http.StatusOK, map[string]interface{}{
-		"data": []models.Organization{},
+		"data": orgs,
 	})
 }
 
