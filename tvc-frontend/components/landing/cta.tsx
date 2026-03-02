@@ -1,51 +1,91 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/ui/fade-in";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export function CTA() {
   return (
-    <section className="relative overflow-hidden bg-zinc-950 py-24 md:py-32">
-      <div className="absolute top-0 left-1/4 h-72 w-72 rounded-full bg-teal-500/10 blur-[100px] animate-pulse-soft pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 h-64 w-64 rounded-full bg-indigo-500/10 blur-[100px] animate-pulse-soft pointer-events-none" />
-
+    <section
+      style={{
+        background: "var(--bg-dark)",
+        position: "relative",
+        overflow: "hidden",
+        paddingTop: 96,
+        paddingBottom: 96,
+      }}
+    >
+      {/* Subtle research grid on dark */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.04]"
+        className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
+            "linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px)",
+          backgroundSize: "64px 64px",
         }}
       />
 
-      <div className="relative mx-auto max-w-[1200px] px-6 text-center">
+      {/* Data stripe accent */}
+      <div
+        className="absolute top-0 left-0 right-0 data-stripe-wide animate-stripe"
+        style={{ height: 3 }}
+      />
+
+      <div className="relative mx-auto max-w-[1120px] px-6 text-center">
         <FadeIn>
-          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Ready to stop shipping breaking changes?
+          <h2
+            className="font-editorial"
+            style={{
+              fontSize: "clamp(2rem, 5vw, 3rem)",
+              lineHeight: 1.1,
+              color: "var(--text-on-dark)",
+            }}
+          >
+            Ready to stop shipping{" "}
+            <span className="font-editorial-italic">breaking changes?</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-md text-[14px] leading-relaxed text-zinc-400">
+          <p
+            style={{
+              marginTop: 16,
+              maxWidth: 420,
+              marginLeft: "auto",
+              marginRight: "auto",
+              fontSize: 14,
+              lineHeight: 1.7,
+              color: "var(--text-on-dark-muted)",
+            }}
+          >
             Start catching API drift today. Free forever for schema diffing.
           </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/signup">
-              <Button
-                size="lg"
-                className="btn-gradient border-0 text-white px-7"
-              >
-                Start for free
-                <ArrowRight size={15} />
-              </Button>
+          <div
+            style={{
+              marginTop: 32,
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              gap: 12,
+            }}
+          >
+            <Link
+              href="/signup"
+              className="btn-research"
+              style={{
+                background: "var(--bg-primary)",
+                color: "var(--text-primary)",
+              }}
+            >
+              Start for free
+              <ArrowRight size={14} />
             </Link>
-            <Link href="/docs">
-              <Button
-                variant="ghost"
-                size="lg"
-                className="text-zinc-400 hover:text-white hover:bg-white/5"
-              >
-                Read the docs
-              </Button>
+            <Link
+              href="/docs"
+              className="btn-research-outline"
+              style={{
+                borderColor: "var(--border-dark)",
+                color: "var(--text-on-dark-muted)",
+              }}
+            >
+              Read the docs
             </Link>
           </div>
         </FadeIn>

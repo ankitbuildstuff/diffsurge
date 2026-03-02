@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { cn } from "@/lib/utils";
 import { faqs } from "@/lib/constants";
 import { FadeIn } from "@/components/ui/fade-in";
 import { ChevronDown } from "lucide-react";
@@ -18,27 +17,49 @@ function AccordionItem({
   onClick: () => void;
 }) {
   return (
-    <div className="border-b border-zinc-100">
+    <div style={{ borderBottom: "1px solid var(--border-subtle)" }}>
       <button
         onClick={onClick}
         className="flex w-full items-center justify-between py-5 text-left cursor-pointer"
       >
-        <span className="text-[14px] font-medium text-zinc-900 pr-4">{q}</span>
+        <span
+          style={{
+            fontSize: 14,
+            fontWeight: 500,
+            color: "var(--text-primary)",
+            paddingRight: 16,
+          }}
+        >
+          {q}
+        </span>
         <ChevronDown
-          size={16}
-          className={cn(
-            "shrink-0 text-zinc-400 transition-transform duration-200",
-            open && "rotate-180"
-          )}
+          size={15}
+          strokeWidth={1.5}
+          style={{
+            flexShrink: 0,
+            color: "var(--text-faint)",
+            transition: "transform 0.2s ease",
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+          }}
         />
       </button>
       <div
-        className={cn(
-          "overflow-hidden transition-all duration-300 ease-out",
-          open ? "max-h-[500px] pb-5" : "max-h-0"
-        )}
+        style={{
+          overflow: "hidden",
+          transition: "all 0.3s ease-out",
+          maxHeight: open ? 500 : 0,
+          paddingBottom: open ? 20 : 0,
+        }}
       >
-        <p className="text-[13px] leading-[1.7] text-zinc-500">{a}</p>
+        <p
+          style={{
+            fontSize: 13,
+            lineHeight: 1.7,
+            color: "var(--text-muted)",
+          }}
+        >
+          {a}
+        </p>
       </div>
     </div>
   );
@@ -48,24 +69,47 @@ export function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="bg-white py-20 md:py-28">
-      <div className="mx-auto max-w-[1200px] px-6">
+    <section
+      id="faq"
+      className="section-spacing"
+      style={{ background: "var(--bg-secondary)" }}
+    >
+      <div className="mx-auto max-w-[1120px] px-6">
         <div className="grid gap-12 md:grid-cols-5">
-          {/* Left heading */}
+          {/* Left heading — editorial */}
           <div className="md:col-span-2">
             <FadeIn>
-              <p className="text-[12px] font-medium uppercase tracking-widest text-teal-600">
+              <p className="micro-label" style={{ marginBottom: 16 }}>
                 FAQ
               </p>
-              <h2 className="mt-3 text-[1.75rem] font-bold tracking-tight sm:text-3xl">
-                Frequently asked questions
+              <h2
+                className="font-editorial"
+                style={{
+                  fontSize: "clamp(1.8rem, 4vw, 2.4rem)",
+                  lineHeight: 1.1,
+                  color: "var(--text-primary)",
+                }}
+              >
+                Frequently asked{" "}
+                <span className="font-editorial-italic">questions</span>
               </h2>
-              <p className="mt-3 text-[14px] leading-relaxed text-zinc-500">
+              <p
+                style={{
+                  marginTop: 14,
+                  fontSize: 14,
+                  lineHeight: 1.7,
+                  color: "var(--text-muted)",
+                }}
+              >
                 Everything you need to know about Driftsurge. Can&apos;t find
                 what you&apos;re looking for?{" "}
                 <a
                   href="/contact"
-                  className="text-teal-600 hover:text-teal-700 underline underline-offset-2"
+                  style={{
+                    color: "var(--text-secondary)",
+                    textDecoration: "underline",
+                    textUnderlineOffset: 3,
+                  }}
                 >
                   Reach out
                 </a>

@@ -13,13 +13,17 @@ const Label = forwardRef<HTMLLabelElement, LabelProps>(
         ref={ref}
         className={cn(
           "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-          error ? "text-red-600" : "text-zinc-700",
           className,
         )}
+        style={{
+          color: error ? "var(--accent-orange)" : "var(--text-secondary)",
+        }}
         {...props}
       >
         {children}
-        {required && <span className="ml-1 text-red-500">*</span>}
+        {required && (
+          <span style={{ marginLeft: 4, color: "var(--accent-orange)" }}>*</span>
+        )}
       </label>
     );
   },

@@ -3,7 +3,6 @@
 import { useState, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/lib/constants";
 import Link from "next/link";
 
@@ -48,56 +47,154 @@ function LoginPageContent() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <Link href="/" className="inline-flex items-center gap-2 mb-6">
+    <div
+      className="flex min-h-screen items-center justify-center px-4"
+      style={{ background: "var(--bg-primary)" }}
+    >
+      {/* Subtle grid */}
+      <div
+        className="bg-research-grid fixed inset-0 pointer-events-none"
+        style={{ opacity: 0.4 }}
+      />
+
+      <div className="relative w-full max-w-sm">
+        {/* Logo */}
+        <div style={{ marginBottom: 40, textAlign: "center" }}>
+          <Link
+            href="/"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 10,
+              textDecoration: "none",
+              marginBottom: 32,
+            }}
+          >
             <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-              <rect width="28" height="28" rx="6" fill="#18181B" />
+              <rect width="28" height="28" rx="6" fill="#1A1714" />
               <path d="M7 10l7-4 7 4-7 4-7-4z" fill="#A1A1AA" />
               <path d="M7 14l7 4 7-4" stroke="#fff" strokeWidth="1.5" />
               <path d="M7 18l7 4 7-4" stroke="#71717A" strokeWidth="1.5" />
             </svg>
-            <span className="text-lg font-semibold">{siteConfig.name}</span>
+            <span
+              className="font-editorial"
+              style={{ fontSize: 20, color: "var(--text-primary)" }}
+            >
+              {siteConfig.name}
+            </span>
           </Link>
-          <h1 className="text-xl font-semibold text-zinc-900">Welcome back</h1>
-          <p className="mt-1 text-sm text-zinc-500">
+
+          <h1
+            className="font-editorial"
+            style={{
+              fontSize: 28,
+              lineHeight: 1.2,
+              color: "var(--text-primary)",
+              marginTop: 8,
+            }}
+          >
+            Welcome back
+          </h1>
+          <p
+            style={{
+              marginTop: 8,
+              fontSize: 14,
+              color: "var(--text-muted)",
+            }}
+          >
             Sign in to your account to continue
           </p>
         </div>
 
-        <div className="space-y-3 mb-6">
+        {/* OAuth */}
+        <div style={{ marginBottom: 24 }}>
           <button
             onClick={() => handleOAuth("github")}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 shadow-sm transition-colors hover:bg-zinc-50"
+            className="card-flat"
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              padding: "10px 16px",
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: "pointer",
+              color: "var(--text-secondary)",
+              transition: "border-color 0.2s",
+            }}
           >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+            <svg
+              style={{ width: 16, height: 16 }}
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
               <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
             </svg>
             Continue with GitHub
           </button>
         </div>
 
-        <div className="relative mb-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-zinc-200" />
+        {/* Divider */}
+        <div
+          style={{
+            position: "relative",
+            marginBottom: 24,
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                borderTop: "1px solid var(--border-subtle)",
+              }}
+            />
           </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-zinc-50 px-2 text-zinc-400">or</span>
-          </div>
+          <span
+            className="micro-label"
+            style={{
+              position: "relative",
+              padding: "0 12px",
+              background: "var(--bg-primary)",
+              fontSize: 10,
+            }}
+          >
+            or
+          </span>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        {/* Form */}
+        <form onSubmit={handleLogin}>
           {error && (
-            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+            <div
+              style={{
+                padding: 12,
+                borderRadius: 8,
+                marginBottom: 16,
+                fontSize: 13,
+                background: "rgba(199, 116, 74, 0.08)",
+                color: "var(--accent-orange)",
+                border: "1px solid rgba(199, 116, 74, 0.15)",
+              }}
+            >
               {error}
             </div>
           )}
 
-          <div>
+          <div style={{ marginBottom: 16 }}>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-zinc-700 mb-1.5"
+              className="micro-label"
+              style={{ display: "block", marginBottom: 8, fontSize: 11 }}
             >
               Email
             </label>
@@ -107,22 +204,46 @@ function LoginPageContent() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full rounded-lg border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400"
               placeholder="you@company.com"
+              style={{
+                width: "100%",
+                padding: "10px 14px",
+                fontSize: 14,
+                borderRadius: 8,
+                border: "1px solid var(--border-light)",
+                background: "var(--bg-primary)",
+                color: "var(--text-primary)",
+                outline: "none",
+                transition: "border-color 0.2s",
+              }}
+              onFocus={(e) =>
+                (e.currentTarget.style.borderColor = "var(--accent-purple)")
+              }
+              onBlur={(e) =>
+                (e.currentTarget.style.borderColor = "var(--border-light)")
+              }
             />
           </div>
 
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-zinc-700"
-              >
+          <div style={{ marginBottom: 24 }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 8,
+              }}
+            >
+              <label htmlFor="password" className="micro-label" style={{ fontSize: 11 }}>
                 Password
               </label>
               <Link
                 href="/forgot-password"
-                className="text-xs text-zinc-500 hover:text-zinc-700"
+                style={{
+                  fontSize: 12,
+                  color: "var(--text-faint)",
+                  textDecoration: "none",
+                }}
               >
                 Forgot password?
               </Link>
@@ -133,25 +254,59 @@ function LoginPageContent() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full rounded-lg border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400"
               placeholder="Enter your password"
+              style={{
+                width: "100%",
+                padding: "10px 14px",
+                fontSize: 14,
+                borderRadius: 8,
+                border: "1px solid var(--border-light)",
+                background: "var(--bg-primary)",
+                color: "var(--text-primary)",
+                outline: "none",
+                transition: "border-color 0.2s",
+              }}
+              onFocus={(e) =>
+                (e.currentTarget.style.borderColor = "var(--accent-purple)")
+              }
+              onBlur={(e) =>
+                (e.currentTarget.style.borderColor = "var(--border-light)")
+              }
             />
           </div>
 
-          <Button
+          <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg"
+            className="btn-research"
+            style={{
+              width: "100%",
+              height: 42,
+              fontSize: 14,
+              opacity: loading ? 0.6 : 1,
+            }}
           >
             {loading ? "Signing in..." : "Sign in"}
-          </Button>
+          </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-zinc-500">
+        <p
+          style={{
+            marginTop: 28,
+            textAlign: "center",
+            fontSize: 13,
+            color: "var(--text-muted)",
+          }}
+        >
           Don&apos;t have an account?{" "}
           <Link
             href="/signup"
-            className="font-medium text-zinc-900 hover:underline"
+            style={{
+              fontWeight: 500,
+              color: "var(--text-primary)",
+              textDecoration: "underline",
+              textUnderlineOffset: 3,
+            }}
           >
             Sign up
           </Link>
@@ -163,7 +318,25 @@ function LoginPageContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center py-20"><div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600" /></div>}>
+    <Suspense
+      fallback={
+        <div
+          className="flex items-center justify-center py-20"
+          style={{ background: "var(--bg-primary)", minHeight: "100vh" }}
+        >
+          <div
+            style={{
+              width: 20,
+              height: 20,
+              border: "2px solid var(--border-light)",
+              borderTopColor: "var(--text-muted)",
+              borderRadius: "50%",
+              animation: "spin 0.6s linear infinite",
+            }}
+          />
+        </div>
+      }
+    >
       <LoginPageContent />
     </Suspense>
   );

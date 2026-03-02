@@ -11,14 +11,19 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       <input
         type={type}
         className={cn(
-          "flex h-10 w-full rounded-lg border bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 transition-colors",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+          "flex h-10 w-full rounded-[8px] border px-3.5 py-2 text-sm transition-colors",
+          "placeholder:text-[var(--text-faint)]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
           "disabled:cursor-not-allowed disabled:opacity-50",
           error
-            ? "border-red-300 focus-visible:ring-red-500"
-            : "border-zinc-200 focus-visible:ring-teal-500",
+            ? "border-[var(--accent-orange)] focus-visible:ring-[var(--accent-orange)]"
+            : "border-[var(--border-light)] focus-visible:ring-[var(--accent-purple)]",
           className,
         )}
+        style={{
+          backgroundColor: "var(--bg-primary)",
+          color: "var(--text-primary)",
+        }}
         ref={ref}
         {...props}
       />

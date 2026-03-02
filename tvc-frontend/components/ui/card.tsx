@@ -7,9 +7,10 @@ const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
       <div
         ref={ref}
         className={cn(
-          "rounded-xl border border-zinc-100 bg-white shadow-sm",
+          "rounded-[10px] border bg-[var(--bg-primary)] shadow-none",
           className,
         )}
+        style={{ borderColor: "var(--border-subtle)" }}
         {...props}
       />
     );
@@ -38,9 +39,10 @@ const CardTitle = forwardRef<
     <h3
       ref={ref}
       className={cn(
-        "text-lg font-semibold leading-none tracking-tight text-zinc-900",
+        "text-lg font-semibold leading-none tracking-tight",
         className,
       )}
+      style={{ color: "var(--text-primary)" }}
       {...props}
     />
   );
@@ -54,7 +56,8 @@ const CardDescription = forwardRef<
   return (
     <p
       ref={ref}
-      className={cn("text-sm text-zinc-500", className)}
+      className={cn("text-sm", className)}
+      style={{ color: "var(--text-muted)" }}
       {...props}
     />
   );

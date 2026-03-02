@@ -8,32 +8,29 @@ const steps = [
     title: "Install the CLI",
     description:
       "One command, zero dependencies. Install the Surge CLI globally via npm or run it directly with Docker. Works on macOS, Linux, and Windows.",
-    code: `# Install via npm
-$ npm install -g driftsurge
+    code: `$ npm install -g driftsurge
 
   added 1 package in 2.1s
 
-# Or run via Docker
-$ docker run equixankit/driftsurge-cli --help
+$ surge --help
 
   surge — Catch breaking API changes
   before your users do
 
   Commands:
-    diff       Compare two JSON files
-    schema     Schema management commands
-    replay     Replay traffic against a target
-    version    Print the version`,
+    diff       Compare two schema files
+    schema     Schema management
+    replay     Replay traffic
+    version    Print version`,
   },
   {
     number: "02",
     title: "Diff your API schemas",
     description:
-      "Surge compares OpenAPI, GraphQL, and gRPC schemas — flagging every breaking change with severity and a JSON path. Perfect for CI/CD gates.",
+      "Surge compares OpenAPI, GraphQL, and gRPC schemas — flagging every breaking change with severity and a JSON path.",
     code: `$ surge schema diff \\
     --old api-v1.yaml \\
-    --new api-v2.yaml \\
-    --fail-on-breaking
+    --new api-v2.yaml
 
   Comparing 47 endpoints…
 
@@ -49,9 +46,8 @@ $ docker run equixankit/driftsurge-cli --help
     number: "03",
     title: "Capture production traffic",
     description:
-      "Deploy the proxy as a sidecar or standalone container. It samples real traffic, strips PII, and buffers asynchronously — adding less than 5 ms of latency to the request path.",
-    code: `# Deploy via Docker
-$ docker run -d \\
+      "Deploy the proxy as a sidecar or standalone container. It samples real traffic, strips PII, and buffers asynchronously.",
+    code: `$ docker run -d \\
     -e TVC_STORAGE_POSTGRES_URL=... \\
     -e TVC_STORAGE_REDIS_URL=... \\
     -p 8081:8080 \\
@@ -66,11 +62,10 @@ $ docker run -d \\
     number: "04",
     title: "Replay and compare",
     description:
-      "Point the replay engine at your staging build. It fires captured requests at configurable concurrency, semantically compares every response, and produces a drift report — sorted by severity.",
+      "Point the replay engine at your staging build. It fires captured requests, compares every response, and produces a drift report.",
     code: `$ surge replay \\
     --source traffic.json \\
-    --target http://staging.example.com \\
-    --workers 20
+    --target http://staging:8080
 
   Replaying 1,247 requests...
 
@@ -83,48 +78,132 @@ $ docker run -d \\
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className="bg-zinc-50/60 py-20 md:py-28">
-      <div className="mx-auto max-w-[1200px] px-6">
+    <section
+      id="how-it-works"
+      className="section-spacing"
+      style={{ background: "var(--bg-secondary)" }}
+    >
+      <div className="mx-auto max-w-[1120px] px-6">
         <FadeIn>
-          <p className="text-[12px] font-medium uppercase tracking-widest text-teal-600">
-            How it works
-          </p>
-          <h2 className="mt-3 text-[1.75rem] font-bold tracking-tight sm:text-3xl">
-            Four steps to safer deployments
-          </h2>
-          <p className="mt-3 max-w-lg text-[14px] leading-relaxed text-zinc-500">
-            Go from zero to production-grade API regression testing in minutes.
-          </p>
+          <div style={{ maxWidth: 480 }}>
+            <div
+              className="micro-label"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                marginBottom: 16,
+              }}
+            >
+              <span
+                className="data-stripe"
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: 3,
+                  display: "inline-block",
+                }}
+              />
+              <span>How it works</span>
+            </div>
+            <h2
+              className="font-editorial"
+              style={{
+                fontSize: "clamp(1.8rem, 4vw, 2.6rem)",
+                lineHeight: 1.1,
+                color: "var(--text-primary)",
+              }}
+            >
+              Four steps to{" "}
+              <span className="font-editorial-italic">safer deployments</span>
+            </h2>
+            <p
+              style={{
+                marginTop: 16,
+                fontSize: 14,
+                lineHeight: 1.7,
+                color: "var(--text-muted)",
+              }}
+            >
+              Go from zero to production-grade API regression testing in
+              minutes.
+            </p>
+          </div>
         </FadeIn>
 
-        <div className="mt-14 space-y-6">
+        <div style={{ marginTop: 56, display: "flex", flexDirection: "column", gap: 20 }}>
           {steps.map((step, i) => (
             <FadeIn key={step.number} delay={i * 0.08}>
-              <div className="grid items-start gap-8 rounded-2xl border border-zinc-200 bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] md:grid-cols-5 md:p-8">
+              <div
+                className="card-flat grid gap-6 p-6 md:p-7 md:grid-cols-5"
+              >
                 {/* Text */}
                 <div className="md:col-span-2">
-                  <div className="flex items-center gap-3">
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 text-[13px] font-bold text-zinc-400">
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                    }}
+                  >
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: 32,
+                        height: 32,
+                        borderRadius: "50%",
+                        border: "1px solid var(--border-light)",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: "var(--text-faint)",
+                        fontFamily: "var(--font-mono)",
+                      }}
+                    >
                       {step.number}
                     </span>
-                    <h3 className="text-[15px] font-semibold text-zinc-900">
+                    <h3
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 600,
+                        color: "var(--text-primary)",
+                      }}
+                    >
                       {step.title}
                     </h3>
                   </div>
-                  <p className="mt-3 text-[13px] leading-[1.7] text-zinc-500">
+                  <p
+                    style={{
+                      marginTop: 12,
+                      fontSize: 13,
+                      lineHeight: 1.7,
+                      color: "var(--text-muted)",
+                    }}
+                  >
                     {step.description}
                   </p>
                 </div>
 
                 {/* Code */}
                 <div className="md:col-span-3">
-                  <div className="overflow-hidden rounded-xl border border-zinc-200">
-                    <div className="flex items-center gap-1.5 border-b border-zinc-100 bg-zinc-50 px-3 py-2">
-                      <div className="h-2 w-2 rounded-full bg-zinc-300" />
-                      <div className="h-2 w-2 rounded-full bg-zinc-300" />
-                      <div className="h-2 w-2 rounded-full bg-zinc-300" />
+                  <div className="terminal-research">
+                    <div className="terminal-research-header">
+                      <div className="dot" />
+                      <div className="dot" />
+                      <div className="dot" />
                     </div>
-                    <pre className="overflow-x-auto bg-[#0a0a0f] p-4 font-mono text-[11.5px] leading-[1.8] text-zinc-400">
+                    <pre
+                      style={{
+                        padding: "14px 18px",
+                        fontFamily: "var(--font-mono)",
+                        fontSize: 11.5,
+                        lineHeight: 1.8,
+                        color: "rgba(255,255,255,0.5)",
+                        overflowX: "auto",
+                        margin: 0,
+                      }}
+                    >
                       {step.code}
                     </pre>
                   </div>
