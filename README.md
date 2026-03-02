@@ -1,5 +1,5 @@
 # Driftsurge
-#### Deployment Version - 1.1
+#### Deployment Version - 1.2
 
 **Catch breaking API changes before your users do.**
 
