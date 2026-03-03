@@ -52,6 +52,8 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
+    if: ${{ secrets.DOCKERHUB_USERNAME != '' }}
+    continue-on-error: true
     strategy:
       matrix:
         include:
