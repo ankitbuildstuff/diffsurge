@@ -1,5 +1,5 @@
 # Diffsurge
-#### Deployment Version - 1.3
+#### Deployment Version - 1.4
 
 **Catch breaking API changes before your users do.**
 
