@@ -9,19 +9,19 @@ Diffsurge captures production traffic, replays it against new deployments, and s
 
 ```
 ┌─────────────┐     ┌──────────┐     ┌──────────────┐
-│   Frontend   │────▶│  Proxy   │────▶│  Target API  │
-│  (Next.js)   │     │ (Go)     │     └──────────────┘
-└──────┬───────┘     └────┬─────┘
-       │                  │ captures traffic
-       │                  ▼
+│   Frontend  │────▶│  Proxy   │────▶│  Target API  │
+│  (Next.js)  │     │ (Go)     │     └──────────────┘
+└──────┬──────┘     └────┬─────┘
+       │                 │ captures traffic
+       │                 ▼
        │            ┌──────────┐     ┌──────────────┐
-       └───────────▶│  API     │────▶│  PostgreSQL   │
-                    │  (Go)    │     │  (Supabase)   │
+       └───────────▶│  API     │────▶│  PostgreSQL  │
+                    │  (Go)    │     │  (Supabase)  │
                     └────┬─────┘     └──────────────┘
                          │
                     ┌────▼─────┐     ┌──────────────┐
-                    │ Replayer │────▶│    Redis      │
-                    │  (Go)    │     │  (Upstash)    │
+                    │ Replayer │────▶│    Redis     │
+                    │  (Go)    │     │  (Upstash)   │
                     └──────────┘     └──────────────┘
 ```
 
