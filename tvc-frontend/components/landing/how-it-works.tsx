@@ -136,6 +136,7 @@ export function HowItWorks() {
             <FadeIn key={step.number} delay={i * 0.08}>
               <div
                 className="card-flat grid gap-6 p-6 md:p-7 md:grid-cols-5"
+                style={{ overflow: "hidden" }}
               >
                 {/* Text */}
                 <div className="md:col-span-2">
@@ -186,7 +187,7 @@ export function HowItWorks() {
                 </div>
 
                 {/* Code */}
-                <div className="md:col-span-3">
+                <div className="md:col-span-3" style={{ minWidth: 0 }}>
                   <div className="terminal-research">
                     <div className="terminal-research-header">
                       <div className="dot" />
@@ -194,6 +195,7 @@ export function HowItWorks() {
                       <div className="dot" />
                     </div>
                     <pre
+                      className="hiw-code-pre"
                       style={{
                         padding: "14px 18px",
                         fontFamily: "var(--font-mono)",
@@ -202,6 +204,7 @@ export function HowItWorks() {
                         color: "rgba(255,255,255,0.5)",
                         overflowX: "auto",
                         margin: 0,
+                        maxWidth: "100%",
                       }}
                     >
                       {step.code}

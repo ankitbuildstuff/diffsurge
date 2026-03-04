@@ -9,6 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://diffsurge.com"),
   title: "Diffsurge — Catch breaking API changes before your users do",
   description:
     "Diffsurge captures production traffic, replays it against new deployments, and surfaces breaking changes before a single user is affected. Schema diffing, traffic replay, and drift reports in one CLI.",
@@ -19,14 +20,58 @@ export const metadata: Metadata = {
     "schema diffing",
     "API versioning",
     "OpenAPI diff",
+    "OpenAPI diff CLI",
     "GraphQL breaking changes",
+    "GraphQL schema comparison",
+    "gRPC proto diff",
     "developer tools",
     "CI/CD integration",
     "API regression testing",
+    "API regression testing tool",
+    "API contract testing",
+    "API drift detection",
+    "production traffic replay",
+    "API compatibility checker",
+    "API schema validation",
+    "breaking change detection",
+    "REST API testing",
+    "API monitoring",
+    "API governance",
+    "schema breaking change",
+    "diffsurge",
   ],
   icons: {
     icon: "/logo.svg",
     apple: "/logo.svg",
+  },
+  openGraph: {
+    title: "Diffsurge — Catch breaking API changes before your users do",
+    description:
+      "Schema diffing, traffic replay, and drift reports in one CLI. Diffsurge surfaces breaking API changes before a single user is affected.",
+    url: "https://diffsurge.com",
+    siteName: "Diffsurge",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Diffsurge — Catch breaking API changes before your users do",
+    description:
+      "Schema diffing, traffic replay, and drift reports in one CLI. Diffsurge surfaces breaking API changes before a single user is affected.",
+  },
+  alternates: {
+    canonical: "https://diffsurge.com",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 

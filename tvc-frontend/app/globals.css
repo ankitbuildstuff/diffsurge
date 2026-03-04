@@ -303,3 +303,18 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ─── How it Works — mobile overflow fix ─── */
+@media (max-width: 640px) {
+  .hiw-code-pre {
+    font-size: 10px !important;
+    line-height: 1.6 !important;
+    padding: 10px 12px !important;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .terminal-research {
+    max-width: 100%;
+  }
+}

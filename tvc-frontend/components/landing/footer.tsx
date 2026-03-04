@@ -6,11 +6,14 @@ const footerLinks = {
   Product: [
     { label: "Features", href: "#features" },
     { label: "How it Works", href: "#how-it-works" },
+    { label: "Pricing", href: "#pricing" },
     { label: "Documentation", href: "/docs" },
   ],
   Developers: [
     { label: "CLI Reference", href: "/docs" },
+    { label: "GitHub", href: "https://github.com/ankit12301/tvc" },
     { label: "Docker Hub", href: "https://hub.docker.com/u/equixankit" },
+    { label: "npm", href: "https://www.npmjs.com/package/diffsurge" },
   ],
   Company: [{ label: "Contact", href: "/contact" }],
 };

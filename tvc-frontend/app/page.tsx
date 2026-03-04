@@ -7,10 +7,12 @@ import { Capabilities } from "@/components/landing/capabilities";
 import { FAQ } from "@/components/landing/faq";
 import { CTA } from "@/components/landing/cta";
 import { Footer } from "@/components/landing/footer";
+import { JsonLd } from "@/components/landing/json-ld";
 
 export default function Home() {
   return (
     <>
+      <JsonLd />
       <Header />
       <main>
         <Hero />

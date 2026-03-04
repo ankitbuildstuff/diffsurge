@@ -311,6 +311,21 @@ export function Hero() {
             staging builds, and surfaces every breaking change — so you ship
             with confidence instead of crossing your fingers.
           </p>
+          <p
+            style={{
+              marginTop: 12,
+              maxWidth: 520,
+              fontSize: 13,
+              lineHeight: 1.7,
+              color: "var(--text-muted)",
+              fontWeight: 400,
+            }}
+          >
+            An open-source API regression testing tool with an OpenAPI diff
+            CLI, GraphQL schema comparison, gRPC proto diffing, and
+            production traffic replay — all in one developer-friendly
+            platform.
+          </p>
         </FadeIn>
 
         {/* CTA — compact, research-grade */}
