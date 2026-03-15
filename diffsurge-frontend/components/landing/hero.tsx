@@ -1,122 +1,139 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import { FadeIn } from "@/components/ui/fade-in";
-import { ArrowRight } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { Github, ArrowRight, Globe, Radio, Play, CheckCircle2 } from "lucide-react";
+import { siteConfig } from "@/lib/constants";
 import Link from "next/link";
 
-/* ── Waveform Visual (data-visual motif) ── */
-function WaveformVisual() {
-  const bars = [
-    35, 55, 25, 70, 40, 85, 30, 60, 45, 75, 20, 65, 50, 80, 35, 55, 90, 28,
-    72, 42, 68, 38, 82, 22, 58, 48, 78, 32, 62, 52, 88, 26, 70, 44, 76, 34,
-    64, 54, 86, 30,
-  ];
-
-  const colors = [
-    "var(--accent-purple)",
-    "var(--accent-blue)",
-    "var(--accent-teal)",
-    "var(--accent-yellow)",
-    "var(--accent-orange)",
-    "var(--accent-rose)",
+/* ── Pipeline ── */
+function PipelineAnimation() {
+  const nodes = [
+    { icon: Globe, label: "Production", sublabel: "Live Traffic" },
+    { icon: Radio, label: "Capture", sublabel: "Record & Sample" },
+    { icon: Play, label: "Replay", sublabel: "Test Staging" },
+    { icon: CheckCircle2, label: "Report", sublabel: "Detect Changes" },
   ];
 
   return (
-    <div className="flex items-end gap-[2px]" style={{ height: 120 }}>
-      {bars.map((h, i) => (
-        <div
-          key={i}
-          style={{
-            width: 3,
-            height: `${h}%`,
-            backgroundColor: colors[i % colors.length],
-            borderRadius: 1,
-            opacity: 0.7 + (h / 400),
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-/* ── Spectrum Stripe Block ── */
-function SpectrumBlock() {
-  return (
-    <div
-      style={{
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        gap: 16,
-      }}
-    >
-      {/* Waveform */}
-      <WaveformVisual />
-
-      {/* Data stripe bar */}
-      <div
-        className="data-stripe-wide animate-stripe"
-        style={{ height: 6, borderRadius: 3, width: "100%" }}
-      />
-
-      {/* Signal metrics */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr",
-          gap: 12,
-          marginTop: 4,
-        }}
-      >
-        {[
-          { label: "ENDPOINTS SCANNED", value: "2,847" },
-          { label: "BREAKING CHANGES", value: "12" },
-          { label: "CONFIDENCE", value: "99.5%" },
-        ].map((m) => (
-          <div key={m.label}>
-            <p
-              className="micro-label"
-              style={{ fontSize: 9, marginBottom: 4 }}
+    <div className="w-full" style={{ paddingTop: 48 }}>
+      {/* Desktop: horizontal */}
+      <div className="hidden md:flex items-center justify-center gap-0">
+        {nodes.map((node, i) => (
+          <Fragment key={i}>
+            <div
+              className="card flex flex-col items-center gap-3 px-6 py-5"
+              style={{ cursor: "default", width: 180 }}
             >
-              {m.label}
-            </p>
-            <p
-              className="font-editorial"
-              style={{ fontSize: 22, lineHeight: 1, color: "var(--text-primary)" }}
+              <div
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 10,
+                  border: "1px solid var(--border-subtle)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <node.icon size={18} strokeWidth={1.5} style={{ color: "var(--text-muted)" }} />
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>
+                  {node.label}
+                </p>
+                <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+                  {node.sublabel}
+                </p>
+              </div>
+            </div>
+            {i < nodes.length - 1 && (
+              <div
+                style={{
+                  width: 48,
+                  height: 0,
+                  borderTop: "1px dashed var(--border-light)",
+                  flexShrink: 0,
+                }}
+              />
+            )}
+          </Fragment>
+        ))}
+      </div>
+
+      {/* Mobile: vertical */}
+      <div className="flex md:hidden flex-col items-center gap-0">
+        {nodes.map((node, i) => (
+          <Fragment key={i}>
+            <div
+              className="card flex items-center gap-3 px-5 py-4 w-full"
+              style={{ cursor: "default" }}
             >
-              {m.value}
-            </p>
-          </div>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 8,
+                  border: "1px solid var(--border-subtle)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <node.icon size={16} strokeWidth={1.5} style={{ color: "var(--text-muted)" }} />
+              </div>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>
+                  {node.label}
+                </p>
+                <p style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                  {node.sublabel}
+                </p>
+              </div>
+            </div>
+            {i < nodes.length - 1 && (
+              <div
+                style={{
+                  width: 0,
+                  height: 24,
+                  borderLeft: "1px dashed var(--border-light)",
+                }}
+              />
+            )}
+          </Fragment>
         ))}
       </div>
     </div>
   );
 }
 
-/* ── Animated Terminal (restrained) ── */
-function ResearchTerminal() {
-  const [lines, setLines] = useState<
-    { text: string; color?: string; dim?: boolean }[]
-  >([]);
+/* ── Hero Terminal ── */
+function HeroTerminal() {
+  const [lines, setLines] = useState<{ text: string; color?: string }[]>([]);
   const [currentTyping, setCurrentTyping] = useState("");
   const [showCursor, setShowCursor] = useState(true);
   const terminalRef = useRef<HTMLDivElement>(null);
-  const animating = useRef(true);
 
-  const demoLines = [
-    { text: "$ surge schema diff --old v1.yaml --new v2.yaml", delay: 35, pause: 700 },
-    { text: "", delay: 0, pause: 100, output: true },
-    { text: "Comparing 47 endpoints…", delay: 0, pause: 500, output: true, dim: true },
-    { text: "", delay: 0, pause: 200, output: true },
-    { text: "✗ BREAKING  POST /api/users", delay: 0, pause: 200, output: true, color: "var(--accent-orange)" },
-    { text: "  └─ Required field removed: \"email_verified\"", delay: 0, pause: 200, output: true, dim: true },
-    { text: "⚠ WARNING   GET /api/users/:id", delay: 0, pause: 200, output: true, color: "var(--accent-yellow)" },
-    { text: "  └─ Type changed: \"age\" string → number", delay: 0, pause: 200, output: true, dim: true },
-    { text: "✓ SAFE      45 endpoints unchanged", delay: 0, pause: 200, output: true, color: "var(--accent-teal)" },
-    { text: "", delay: 0, pause: 200, output: true },
-    { text: "1 breaking · 1 warning — exit code 1", delay: 0, pause: 2000, output: true, dim: true },
+  const commands = [
+    { text: "$ npm install -g diffsurge", delay: 40, pause: 800 },
+    { text: "\u2713 installed diffsurge@1.2.0", delay: 0, pause: 400, output: true, color: "var(--accent-green)" },
+    { text: "", delay: 0, pause: 300, output: true },
+    { text: "$ surge capture --proxy :8080", delay: 40, pause: 800 },
+    { text: "\u25B8 Proxy listening on :8080", delay: 0, pause: 300, output: true, color: "var(--accent-cyan)" },
+    { text: "\u25B8 Capturing traffic...", delay: 0, pause: 600, output: true, color: "#888" },
+    { text: "", delay: 0, pause: 300, output: true },
+    { text: "$ surge replay --target http://staging:3000", delay: 35, pause: 800 },
+    { text: "Replaying 1,247 requests...", delay: 0, pause: 500, output: true, color: "#888" },
+    { text: "\u2713 1,241 matched (99.5%)", delay: 0, pause: 200, output: true, color: "var(--accent-green)" },
+    { text: "\u2717 2 breaking changes detected", delay: 0, pause: 200, output: true, color: "var(--accent-red)" },
+    { text: "", delay: 0, pause: 300, output: true },
+    { text: "$ surge diff", delay: 40, pause: 600 },
+    { text: "\u2717 BREAKING POST /api/users", delay: 0, pause: 200, output: true, color: "#f97316" },
+    { text: "  \u2514\u2500 Field removed: \"email_verified\"", delay: 0, pause: 200, output: true, color: "#888" },
+    { text: "\u26A0 WARNING  GET /api/users/:id", delay: 0, pause: 200, output: true, color: "var(--accent-amber)" },
+    { text: "  \u2514\u2500 Type: \"age\" string \u2192 number", delay: 0, pause: 200, output: true, color: "#888" },
+    { text: "\u2713 SAFE     45 endpoints unchanged", delay: 0, pause: 3000, output: true, color: "var(--accent-green)" },
   ];
 
   useEffect(() => {
@@ -132,22 +149,19 @@ function ResearchTerminal() {
     }
 
     async function run() {
-      while (animating.current && !cancelled) {
+      while (!cancelled) {
         setLines([]);
         setCurrentTyping("");
-        for (const line of demoLines) {
+        for (const cmd of commands) {
           if (cancelled) return;
-          if (line.output) {
+          if (cmd.output) {
             setCurrentTyping("");
-            setLines((prev) => [
-              ...prev,
-              { text: line.text, color: line.color, dim: line.dim },
-            ]);
-            await sleep(line.pause);
+            setLines((prev) => [...prev, { text: cmd.text, color: cmd.color }]);
+            await sleep(cmd.pause);
           } else {
-            await typeChar(line.text, line.delay);
-            await sleep(line.pause);
-            setLines((prev) => [...prev, { text: line.text }]);
+            await typeChar(cmd.text, cmd.delay);
+            await sleep(cmd.pause);
+            setLines((prev) => [...prev, { text: cmd.text }]);
             setCurrentTyping("");
           }
         }
@@ -156,10 +170,7 @@ function ResearchTerminal() {
     }
 
     run();
-    const cursorInterval = setInterval(
-      () => setShowCursor((v) => !v),
-      530
-    );
+    const cursorInterval = setInterval(() => setShowCursor((v) => !v), 530);
     return () => {
       cancelled = true;
       clearInterval(cursorInterval);
@@ -174,17 +185,17 @@ function ResearchTerminal() {
   }, [lines, currentTyping]);
 
   return (
-    <div className="terminal-research">
-      <div className="terminal-research-header">
-        <div className="dot" />
-        <div className="dot" />
-        <div className="dot" />
+    <div className="terminal">
+      <div className="terminal-header">
+        <div className="terminal-dot" style={{ background: "#ff5f57" }} />
+        <div className="terminal-dot" style={{ background: "#febc2e" }} />
+        <div className="terminal-dot" style={{ background: "#28c840" }} />
         <span
           style={{
-            marginLeft: 8,
+            marginLeft: 10,
             fontFamily: "var(--font-mono)",
             fontSize: 11,
-            color: "rgba(255,255,255,0.25)",
+            color: "#666",
           }}
         >
           terminal
@@ -194,36 +205,30 @@ function ResearchTerminal() {
         ref={terminalRef}
         className="scrollbar-hide"
         style={{
-          padding: "16px 18px",
+          padding: "16px 20px",
           fontFamily: "var(--font-mono)",
-          fontSize: 12,
-          lineHeight: 1.9,
-          height: 260,
+          fontSize: 13,
+          lineHeight: 1.8,
+          height: 320,
           overflowY: "auto",
         }}
       >
         {lines.map((line, i) => (
-          <p
-            key={i}
-            style={{
-              color: line.color || (line.dim ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.55)"),
-              margin: 0,
-            }}
-          >
+          <p key={i} style={{ color: line.color || "#ccc", margin: 0 }}>
             {line.text || "\u00A0"}
           </p>
         ))}
         {currentTyping !== undefined && (
-          <p style={{ color: "rgba(255,255,255,0.55)", margin: 0 }}>
+          <p style={{ color: "#ccc", margin: 0 }}>
             {currentTyping}
             <span
               style={{
                 opacity: showCursor ? 1 : 0,
-                color: "var(--accent-teal)",
+                color: "var(--accent-cyan)",
                 transition: "opacity 0.1s",
               }}
             >
-              █
+              ▊
             </span>
           </p>
         )}
@@ -233,156 +238,111 @@ function ResearchTerminal() {
 }
 
 export function Hero() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setIsLoggedIn(!!user);
-    });
-  }, []);
-
   return (
-    <section
-      className="relative overflow-hidden"
-      style={{ paddingTop: 80, background: "var(--bg-primary)" }}
-    >
-      {/* Subtle research grid */}
+    <section style={{ paddingTop: 64 }}>
       <div
-        className="bg-research-grid absolute inset-0 pointer-events-none"
-        style={{ opacity: 0.5 }}
-      />
-
-      <div className="relative mx-auto max-w-[1120px] px-6 pt-16 pb-24 md:pt-24 md:pb-32">
-        {/* Micro label */}
-        <FadeIn delay={0}>
+        className="mx-auto px-6 text-center"
+        style={{ maxWidth: 1200, paddingTop: 96, paddingBottom: 64 }}
+      >
+        {/* Badge */}
+        <FadeIn>
           <div
-            className="micro-label"
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
-              marginBottom: 24,
+              padding: "6px 14px",
+              borderRadius: 999,
+              border: "1px solid var(--border-subtle)",
+              marginBottom: 32,
             }}
           >
-            <span
-              className="data-stripe"
+            <div
               style={{
-                width: 12,
-                height: 12,
-                borderRadius: 3,
-                display: "inline-block",
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: "var(--accent-green)",
               }}
             />
-            <span>API Drift Detection</span>
+            <span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-muted)" }}>
+              Open Source API Regression Testing
+            </span>
           </div>
         </FadeIn>
 
-        {/* Main headline — serif, large, deliberate */}
+        {/* Headline */}
         <FadeIn delay={0.1}>
           <h1
-            className="font-editorial"
             style={{
-              fontSize: "clamp(2.4rem, 6vw, 4.2rem)",
+              fontSize: "clamp(2.5rem, 5.5vw, 4.5rem)",
+              fontWeight: 500,
               lineHeight: 1.08,
-              maxWidth: 720,
+              letterSpacing: "-0.02em",
+              maxWidth: 800,
+              margin: "0 auto",
               color: "var(--text-primary)",
             }}
           >
-            Catch breaking{" "}
-            <span className="font-editorial-italic">API changes</span>{" "}
-            before your users do
+            Test your new API version with real production traffic
           </h1>
         </FadeIn>
 
-        {/* Supporting paragraph — sans, light */}
+        {/* Subheadline */}
         <FadeIn delay={0.2}>
           <p
             style={{
               marginTop: 24,
-              maxWidth: 520,
-              fontSize: 15,
+              maxWidth: 560,
+              marginLeft: "auto",
+              marginRight: "auto",
+              fontSize: 17,
               lineHeight: 1.7,
               color: "var(--text-secondary)",
-              fontWeight: 400,
             }}
           >
-            Diffsurge captures production traffic, replays it against your
-            staging builds, and surfaces every breaking change — so you ship
-            with confidence instead of crossing your fingers.
-          </p>
-          <p
-            style={{
-              marginTop: 12,
-              maxWidth: 520,
-              fontSize: 13,
-              lineHeight: 1.7,
-              color: "var(--text-muted)",
-              fontWeight: 400,
-            }}
-          >
-            An open-source API regression testing tool with an OpenAPI diff
-            CLI, GraphQL schema comparison, gRPC proto diffing, and
-            production traffic replay — all in one developer-friendly
-            platform.
+            DiffSurge captures real production requests, replays them against
+            your staging API, and detects breaking changes before deployment.
           </p>
         </FadeIn>
 
-        {/* CTA — compact, research-grade */}
+        {/* CTAs */}
         <FadeIn delay={0.3}>
           <div
             style={{
               marginTop: 36,
               display: "flex",
               flexWrap: "wrap",
-              alignItems: "center",
+              justifyContent: "center",
               gap: 12,
             }}
           >
-            <Link
-              href={isLoggedIn ? "/dashboard" : "/signup"}
-              className="btn-research"
+            <a
+              href={siteConfig.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary"
             >
-              Start for free
+              <Github size={16} />
+              Star on GitHub
+            </a>
+            <Link href="/docs" className="btn-secondary">
+              View Docs
               <ArrowRight size={14} />
             </Link>
-            <Link href="/docs" className="btn-research-outline">
-              Read the docs
-            </Link>
           </div>
-          <p
-            style={{
-              marginTop: 16,
-              fontSize: 12,
-              color: "var(--text-faint)",
-            }}
-          >
-            Free forever for schema diffing · No credit card required
-          </p>
         </FadeIn>
 
-        {/* Data visual area */}
-        <FadeIn delay={0.3}>
-          <div
-            className="grid grid-cols-1 md:grid-cols-2 gap-6"
-            style={{ marginTop: 64 }}
-          >
-            {/* Terminal */}
-            <div>
-              <ResearchTerminal />
-            </div>
-
-            {/* Spectrum / Data visual */}
-            <div
-              className="card-flat"
-              style={{ padding: 28 }}
-            >
-              <p className="micro-label" style={{ marginBottom: 20 }}>
-                Signal Analysis
-              </p>
-              <SpectrumBlock />
-            </div>
+        {/* Terminal */}
+        <FadeIn delay={0.4}>
+          <div style={{ marginTop: 64, maxWidth: 720, marginLeft: "auto", marginRight: "auto", textAlign: "left" }}>
+            <HeroTerminal />
           </div>
+        </FadeIn>
+
+        {/* Pipeline */}
+        <FadeIn delay={0.5}>
+          <PipelineAnimation />
         </FadeIn>
       </div>
     </section>

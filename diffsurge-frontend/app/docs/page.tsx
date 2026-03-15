@@ -56,15 +56,15 @@ function Section({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "var(--accent-purple)",
+              color: "var(--text-muted)",
             }}
           >
             {icon}
           </div>
           <h2
-            className="font-editorial"
             style={{
               fontSize: 22,
+              fontWeight: 500,
               color: "var(--text-primary)",
               letterSpacing: "-0.01em",
             }}
@@ -92,30 +92,29 @@ function Section({
 /* ─── Code block (research terminal style) ─── */
 function Code({ children }: { children: string }) {
   return (
-    <div className="terminal-research" style={{ marginTop: 4 }}>
-      <div className="terminal-research-header">
-        <div className="dot" />
-        <div className="dot" />
-        <div className="dot" />
+    <div className="terminal" style={{ marginTop: 4 }}>
+      <div className="terminal-header">
+        <div className="terminal-dot" style={{ background: "#ff5f57" }} />
+        <div className="terminal-dot" style={{ background: "#febc2e" }} />
+        <div className="terminal-dot" style={{ background: "#28c840" }} />
         <span
           style={{
-            marginLeft: 8,
+            marginLeft: 10,
             fontFamily: "var(--font-mono)",
-            fontSize: 10,
-            color: "rgba(255,255,255,0.2)",
+            fontSize: 11,
+            color: "#666",
           }}
         >
           terminal
         </span>
       </div>
       <pre
-        className="hiw-code-pre"
         style={{
           padding: "16px 18px",
           fontFamily: "var(--font-mono)",
           fontSize: 12,
           lineHeight: 1.9,
-          color: "rgba(255,255,255,0.55)",
+          color: "#ccc",
           margin: 0,
           overflowX: "auto",
         }}
@@ -187,25 +186,13 @@ export default function DocsPage() {
         background: "var(--bg-primary)",
       }}
     >
-      {/* ─── Research grid bg ─── */}
-      <div
-        className="bg-research-grid"
-        style={{
-          position: "fixed",
-          inset: 0,
-          pointerEvents: "none",
-          opacity: 0.4,
-          zIndex: 0,
-        }}
-      />
-
       {/* ─── Header ─── */}
       <header
         style={{
           position: "sticky",
           top: 0,
           zIndex: 40,
-          background: "rgba(250, 249, 246, 0.92)",
+          background: "rgba(255, 255, 255, 0.92)",
           backdropFilter: "blur(16px)",
           borderBottom: "1px solid var(--border-subtle)",
         }}
@@ -275,12 +262,7 @@ export default function DocsPage() {
             </span>
           </Link>
 
-          {/* Data stripe accent */}
           <div style={{ flex: 1 }} />
-          <div
-            className="data-stripe animate-stripe"
-            style={{ width: 48, height: 3, borderRadius: 2, opacity: 0.6 }}
-          />
         </div>
       </header>
 
@@ -352,7 +334,7 @@ export default function DocsPage() {
 
               {/* Quick links card */}
               <div
-                className="card-flat"
+                className="card"
                 style={{
                   marginTop: 24,
                   padding: 16,
@@ -437,31 +419,15 @@ export default function DocsPage() {
             {/* Hero section */}
             <FadeIn>
               <div>
-                <div
-                  className="micro-label"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 8,
-                    marginBottom: 16,
-                  }}
-                >
-                  <span
-                    className="data-stripe"
-                    style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: 3,
-                      display: "inline-block",
-                    }}
-                  />
-                  <span>CLI Reference</span>
-                </div>
+                <p className="micro-label" style={{ marginBottom: 16 }}>
+                  CLI Reference
+                </p>
                 <h1
-                  className="font-editorial"
                   style={{
                     fontSize: "clamp(1.8rem, 4vw, 2.8rem)",
+                    fontWeight: 500,
                     lineHeight: 1.1,
+                    letterSpacing: "-0.02em",
                     color: "var(--text-primary)",
                   }}
                 >
@@ -481,18 +447,6 @@ export default function DocsPage() {
                   requests against staging builds.
                 </p>
 
-                {/* Data stripe divider */}
-                <div
-                  className="data-stripe-wide animate-stripe"
-                  style={{
-                    marginTop: 28,
-                    height: 3,
-                    borderRadius: 2,
-                    width: "100%",
-                    maxWidth: 280,
-                    opacity: 0.5,
-                  }}
-                />
               </div>
             </FadeIn>
 
@@ -760,7 +714,7 @@ jobs:
             {/* ─── Footer CTA ─── */}
             <FadeIn delay={0.3}>
               <div
-                className="card-flat"
+                className="card"
                 style={{
                   padding: 32,
                   textAlign: "center",
@@ -770,9 +724,9 @@ jobs:
                   Ready to get started?
                 </p>
                 <p
-                  className="font-editorial"
                   style={{
                     fontSize: 20,
+                    fontWeight: 500,
                     color: "var(--text-primary)",
                     marginBottom: 20,
                   }}
@@ -787,7 +741,7 @@ jobs:
                     flexWrap: "wrap",
                   }}
                 >
-                  <Link href="/signup" className="btn-research">
+                  <Link href="/signup" className="btn-primary">
                     Get Started Free
                   </Link>
                 </div>

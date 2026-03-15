@@ -25,24 +25,25 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="sticky top-0 z-40 border-b border-zinc-100 bg-white/90 backdrop-blur-sm">
+      <header className="sticky top-0 z-40 border-b border-[var(--border-subtle)] bg-white/90 backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-[1200px] items-center gap-4 px-6">
           <Link
             href="/"
-            className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
+            className="flex items-center gap-2 text-sm transition-colors"
+            style={{ color: "var(--text-muted)" }}
           >
             <ArrowLeft size={14} />
             Back
           </Link>
-          <div className="h-4 w-px bg-zinc-200" />
+          <div className="h-4 w-px" style={{ background: "var(--border-subtle)" }} />
           <Link href="/" className="flex items-center gap-2">
             <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
-              <rect width="28" height="28" rx="6" fill="#18181B" />
+              <rect width="28" height="28" rx="6" fill="#222" />
               <path d="M7 10l7-4 7 4-7 4-7-4z" fill="#A1A1AA" />
               <path d="M7 14l7 4 7-4" stroke="#fff" strokeWidth="1.5" />
               <path d="M7 18l7 4 7-4" stroke="#71717A" strokeWidth="1.5" />
             </svg>
-            <span className="text-[14px] font-semibold">{siteConfig.name}</span>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>{siteConfig.name}</span>
           </Link>
         </div>
       </header>
@@ -50,19 +51,20 @@ export default function ContactPage() {
       <div className="mx-auto max-w-lg px-6 py-16 md:py-24">
         {submitted ? (
           <div className="text-center">
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-teal-50">
-              <Send size={24} className="text-teal-600" />
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-subtle)" }}>
+              <Send size={24} style={{ color: "var(--text-muted)" }} />
             </div>
-            <h1 className="text-2xl font-bold text-zinc-900">
+            <h1 className="text-2xl font-medium" style={{ color: "var(--text-primary)" }}>
               Message sent
             </h1>
-            <p className="mt-3 text-[14px] text-zinc-500 leading-relaxed">
+            <p className="mt-3 text-[14px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
               Thanks for reaching out. We&apos;ll get back to you as soon as
               possible.
             </p>
             <Link
               href="/"
-              className="mt-6 inline-block text-sm font-medium text-teal-600 hover:text-teal-700"
+              className="mt-6 inline-block text-sm font-medium"
+              style={{ color: "var(--text-primary)" }}
             >
               Back to home
             </Link>
@@ -70,13 +72,13 @@ export default function ContactPage() {
         ) : (
           <>
             <div className="mb-8">
-              <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50 text-teal-600 mb-4">
-                <Mail size={20} />
+              <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg mb-4" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-subtle)" }}>
+                <Mail size={20} style={{ color: "var(--text-muted)" }} />
               </div>
-              <h1 className="text-2xl font-bold text-zinc-900">
+              <h1 className="text-2xl font-medium" style={{ color: "var(--text-primary)" }}>
                 Get in touch
               </h1>
-              <p className="mt-2 text-[14px] text-zinc-500 leading-relaxed">
+              <p className="mt-2 text-[14px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
                 Have a question, feature request, or want to discuss enterprise
                 plans? Drop us a message.
               </p>
@@ -87,7 +89,8 @@ export default function ContactPage() {
                 <div>
                   <label
                     htmlFor="name"
-                    className="block text-sm font-medium text-zinc-700 mb-1.5"
+                    className="block text-sm font-medium mb-1.5"
+                    style={{ color: "var(--text-secondary)" }}
                   >
                     Name
                   </label>
@@ -97,14 +100,16 @@ export default function ContactPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="w-full rounded-lg border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400"
+                    className="w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-1"
+                    style={{ borderColor: "var(--border-subtle)", color: "var(--text-primary)" }}
                     placeholder="Your name"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="email"
-                    className="block text-sm font-medium text-zinc-700 mb-1.5"
+                    className="block text-sm font-medium mb-1.5"
+                    style={{ color: "var(--text-secondary)" }}
                   >
                     Email
                   </label>
@@ -114,7 +119,8 @@ export default function ContactPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full rounded-lg border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400"
+                    className="w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-1"
+                    style={{ borderColor: "var(--border-subtle)", color: "var(--text-primary)" }}
                     placeholder="you@company.com"
                   />
                 </div>
@@ -123,7 +129,8 @@ export default function ContactPage() {
               <div>
                 <label
                   htmlFor="subject"
-                  className="block text-sm font-medium text-zinc-700 mb-1.5"
+                  className="block text-sm font-medium mb-1.5"
+                  style={{ color: "var(--text-secondary)" }}
                 >
                   Subject
                 </label>
@@ -133,7 +140,8 @@ export default function ContactPage() {
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                   required
-                  className="w-full rounded-lg border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400"
+                  className="w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-1"
+                  style={{ borderColor: "var(--border-subtle)", color: "var(--text-primary)" }}
                   placeholder="How can we help?"
                 />
               </div>
@@ -141,7 +149,8 @@ export default function ContactPage() {
               <div>
                 <label
                   htmlFor="message"
-                  className="block text-sm font-medium text-zinc-700 mb-1.5"
+                  className="block text-sm font-medium mb-1.5"
+                  style={{ color: "var(--text-secondary)" }}
                 >
                   Message
                 </label>
@@ -151,7 +160,8 @@ export default function ContactPage() {
                   onChange={(e) => setMessage(e.target.value)}
                   required
                   rows={5}
-                  className="w-full rounded-lg border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400 resize-none"
+                  className="w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-1 resize-none"
+                  style={{ borderColor: "var(--border-subtle)", color: "var(--text-primary)" }}
                   placeholder="Tell us more..."
                 />
               </div>

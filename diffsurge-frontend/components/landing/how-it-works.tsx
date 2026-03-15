@@ -7,7 +7,7 @@ const steps = [
     number: "01",
     title: "Install the CLI",
     description:
-      "One command, zero dependencies. Install the Surge CLI globally via npm or run it directly with Docker. Works on macOS, Linux, and Windows.",
+      "One command, zero dependencies. Install the Surge CLI globally via npm or run it directly with Docker.",
     code: `$ npm install -g diffsurge
 
   added 1 package in 2.1s
@@ -83,44 +83,27 @@ export function HowItWorks() {
       className="section-spacing"
       style={{ background: "var(--bg-secondary)" }}
     >
-      <div className="mx-auto max-w-[1120px] px-6">
+      <div className="mx-auto px-6" style={{ maxWidth: 1200 }}>
         <FadeIn>
           <div style={{ maxWidth: 480 }}>
-            <div
-              className="micro-label"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                marginBottom: 16,
-              }}
-            >
-              <span
-                className="data-stripe"
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: 3,
-                  display: "inline-block",
-                }}
-              />
-              <span>How it works</span>
-            </div>
+            <p className="micro-label" style={{ marginBottom: 16 }}>
+              How it works
+            </p>
             <h2
-              className="font-editorial"
               style={{
-                fontSize: "clamp(1.8rem, 4vw, 2.6rem)",
+                fontSize: "clamp(1.8rem, 4vw, 2.5rem)",
+                fontWeight: 500,
                 lineHeight: 1.1,
+                letterSpacing: "-0.02em",
                 color: "var(--text-primary)",
               }}
             >
-              Four steps to{" "}
-              <span className="font-editorial-italic">safer deployments</span>
+              Four steps to safer deployments
             </h2>
             <p
               style={{
                 marginTop: 16,
-                fontSize: 14,
+                fontSize: 15,
                 lineHeight: 1.7,
                 color: "var(--text-muted)",
               }}
@@ -131,12 +114,12 @@ export function HowItWorks() {
           </div>
         </FadeIn>
 
-        <div style={{ marginTop: 56, display: "flex", flexDirection: "column", gap: 20 }}>
+        <div style={{ marginTop: 64, display: "flex", flexDirection: "column", gap: 24 }}>
           {steps.map((step, i) => (
             <FadeIn key={step.number} delay={i * 0.08}>
               <div
-                className="card-flat grid gap-6 p-6 md:p-7 md:grid-cols-5"
-                style={{ overflow: "hidden" }}
+                className="card grid gap-8 md:grid-cols-5"
+                style={{ padding: 32, overflow: "hidden", cursor: "default" }}
               >
                 {/* Text */}
                 <div className="md:col-span-2">
@@ -155,9 +138,9 @@ export function HowItWorks() {
                         width: 32,
                         height: 32,
                         borderRadius: "50%",
-                        border: "1px solid var(--border-light)",
+                        border: "1px solid var(--border-subtle)",
                         fontSize: 12,
-                        fontWeight: 600,
+                        fontWeight: 500,
                         color: "var(--text-faint)",
                         fontFamily: "var(--font-mono)",
                       }}
@@ -167,7 +150,7 @@ export function HowItWorks() {
                     <h3
                       style={{
                         fontSize: 16,
-                        fontWeight: 600,
+                        fontWeight: 500,
                         color: "var(--text-primary)",
                       }}
                     >
@@ -177,7 +160,7 @@ export function HowItWorks() {
                   <p
                     style={{
                       marginTop: 12,
-                      fontSize: 13,
+                      fontSize: 14,
                       lineHeight: 1.7,
                       color: "var(--text-muted)",
                     }}
@@ -188,14 +171,13 @@ export function HowItWorks() {
 
                 {/* Code */}
                 <div className="md:col-span-3" style={{ minWidth: 0 }}>
-                  <div className="terminal-research">
-                    <div className="terminal-research-header">
-                      <div className="dot" />
-                      <div className="dot" />
-                      <div className="dot" />
+                  <div className="terminal">
+                    <div className="terminal-header">
+                      <div className="terminal-dot" style={{ background: "#ff5f57" }} />
+                      <div className="terminal-dot" style={{ background: "#febc2e" }} />
+                      <div className="terminal-dot" style={{ background: "#28c840" }} />
                     </div>
                     <pre
-                      className="hiw-code-pre"
                       style={{
                         padding: "14px 18px",
                         fontFamily: "var(--font-mono)",

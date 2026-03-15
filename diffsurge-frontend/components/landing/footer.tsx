@@ -21,14 +21,14 @@ const footerLinks = {
 export function Footer() {
   return (
     <footer style={{ background: "var(--bg-dark)" }}>
-      {/* Thin data stripe separator */}
-      <div
-        className="data-stripe-wide"
-        style={{ height: 2, opacity: 0.5 }}
-      />
+      {/* Subtle separator */}
+      <div style={{ height: 1, background: "var(--border-dark)" }} />
 
-      <div className="mx-auto max-w-[1120px] px-6" style={{ paddingTop: 56, paddingBottom: 56 }}>
-        <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-5">
+      <div
+        className="mx-auto px-6"
+        style={{ maxWidth: 1200, paddingTop: 64, paddingBottom: 64 }}
+      >
+        <div className="grid gap-12 sm:grid-cols-2 md:grid-cols-5">
           {/* Brand */}
           <div className="md:col-span-1">
             <a
@@ -41,15 +41,15 @@ export function Footer() {
               }}
             >
               <svg width="20" height="20" viewBox="0 0 28 28" fill="none">
-                <rect width="28" height="28" rx="6" fill="#1A1714" />
-                <path d="M7 10l7-4 7 4-7 4-7-4z" fill="#A1A1AA" />
+                <rect width="28" height="28" rx="6" fill="#222" />
+                <path d="M7 10l7-4 7 4-7 4-7-4z" fill="#888" />
                 <path d="M7 14l7 4 7-4" stroke="#fff" strokeWidth="1.5" />
-                <path d="M7 18l7 4 7-4" stroke="#71717A" strokeWidth="1.5" />
+                <path d="M7 18l7 4 7-4" stroke="#888" strokeWidth="1.5" />
               </svg>
               <span
-                className="font-medium"
                 style={{
                   fontSize: 16,
+                  fontWeight: 500,
                   color: "var(--text-on-dark)",
                 }}
               >
@@ -59,7 +59,7 @@ export function Footer() {
             <p
               style={{
                 marginTop: 12,
-                fontSize: 12,
+                fontSize: 13,
                 lineHeight: 1.6,
                 color: "var(--text-on-dark-muted)",
               }}
@@ -77,28 +77,36 @@ export function Footer() {
                 className="micro-label"
                 style={{
                   color: "var(--text-on-dark-muted)",
-                  fontSize: 10,
+                  fontSize: 11,
                 }}
               >
                 {cat}
               </h4>
-              <ul style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+              <ul
+                style={{
+                  marginTop: 16,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 10,
+                }}
+              >
                 {links.map((l) => (
                   <li key={l.label}>
                     <a
                       href={l.href}
                       style={{
                         fontSize: 13,
-                        color: "rgba(232, 228, 223, 0.5)",
+                        color: "rgba(255, 255, 255, 0.4)",
                         transition: "color 0.2s ease",
                         textDecoration: "none",
                       }}
                       onMouseEnter={(e) =>
-                        (e.currentTarget.style.color = "var(--text-on-dark)")
+                        (e.currentTarget.style.color =
+                          "var(--text-on-dark)")
                       }
                       onMouseLeave={(e) =>
                         (e.currentTarget.style.color =
-                          "rgba(232, 228, 223, 0.5)")
+                          "rgba(255, 255, 255, 0.4)")
                       }
                     >
                       {l.label}
@@ -124,7 +132,7 @@ export function Footer() {
         >
           <p
             style={{
-              fontSize: 11,
+              fontSize: 12,
               color: "var(--text-on-dark-muted)",
             }}
           >
@@ -133,7 +141,7 @@ export function Footer() {
           <a
             href="https://hub.docker.com/u/equixankit"
             style={{
-              fontSize: 11,
+              fontSize: 12,
               color: "var(--text-on-dark-muted)",
               transition: "color 0.2s ease",
               textDecoration: "none",

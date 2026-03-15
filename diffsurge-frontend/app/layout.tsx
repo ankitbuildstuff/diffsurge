@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
   variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains",
   subsets: ["latin"],
   display: "swap",
 });
@@ -82,25 +88,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth" style={{ colorScheme: "light" }}>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
-          rel="stylesheet"
-        />
-      </head>
       <body
-        className={`${inter.variable} antialiased`}
+        className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}
         style={{
           fontFamily:
             'var(--font-inter), "Inter", system-ui, -apple-system, sans-serif',
-          backgroundColor: "#FAF9F6",
-          color: "#2D2926",
+          backgroundColor: "#ffffff",
+          color: "#111111",
         }}
       >
         {children}

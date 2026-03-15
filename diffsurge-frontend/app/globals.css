@@ -1,54 +1,49 @@
 @import "tailwindcss";
 
-/* ─── Force light mode ─── */
+/* ── Light minimal theme ── */
 html {
-  color-scheme: light only;
+  color-scheme: light;
 }
 
-/* ─── Research Minimalism Design Tokens ─── */
+/* ── Design Tokens (8px spacing scale) ── */
 :root {
-  /* Backgrounds — warm, never pure white */
-  --bg-primary: #FAF9F6;
-  --bg-secondary: #F5F0EB;
-  --bg-tertiary: #EDEBE8;
-  --bg-dark: #1A1714;
-  --bg-dark-card: #242019;
+  /* Backgrounds */
+  --bg-primary: #ffffff;
+  --bg-secondary: #fafafa;
+  --bg-tertiary: #f5f5f5;
+  --bg-dark: #0a0a0a;
+  --bg-dark-subtle: #111111;
+  --bg-terminal: #0a0a0a;
 
-  /* Text — warm grayscale */
-  --text-primary: #2D2926;
-  --text-secondary: #5C5652;
-  --text-muted: #8A8580;
-  --text-faint: #B5B0AB;
-  --text-on-dark: #E8E4DF;
-  --text-on-dark-muted: #9A9590;
+  /* Text */
+  --text-primary: #111111;
+  --text-secondary: #555555;
+  --text-muted: #888888;
+  --text-faint: #aaaaaa;
+  --text-on-dark: #f5f5f5;
+  --text-on-dark-muted: rgba(255, 255, 255, 0.5);
 
-  /* Accent spectrum — muted neon, used in striped gradients */
-  --accent-purple: #8B6CC1;
-  --accent-yellow: #D4A843;
-  --accent-orange: #C7744A;
-  --accent-blue: #5B7FB5;
-  --accent-teal: #5BA89A;
-  --accent-rose: #B5637A;
+  /* Accents — used sparingly */
+  --accent-blue: #2563eb;
+  --accent-green: #22c55e;
+  --accent-red: #ef4444;
+  --accent-amber: #f59e0b;
+  --accent-cyan: #06b6d4;
 
   /* Borders */
-  --border-light: #E5E0DB;
-  --border-subtle: #EDE9E4;
-  --border-dark: #33302B;
+  --border-subtle: #eaeaea;
+  --border-light: #e0e0e0;
+  --border-medium: #d0d0d0;
+  --border-dark: #1f1f1f;
 
   /* Typography */
-  --font-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
-  --font-sans: var(--font-inter), "Inter", system-ui, -apple-system, sans-serif;
-  --font-mono: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
+  --font-sans: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-jetbrains), 'JetBrains Mono', 'Fira Code', monospace;
 }
 
 @theme inline {
   --color-bg-primary: var(--bg-primary);
   --color-bg-secondary: var(--bg-secondary);
-  --color-bg-tertiary: var(--bg-tertiary);
-  --color-bg-dark: var(--bg-dark);
-  --color-text-primary: var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-muted: var(--text-muted);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
 }
@@ -66,236 +61,138 @@ body {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--accent-purple) 18%, transparent);
+  background: rgba(37, 99, 235, 0.12);
 }
 
-/* ─── Serif headlines ─── */
-.font-editorial {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  letter-spacing: -0.01em;
-}
-
-.font-editorial-italic {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 400;
-}
-
-/* ─── Micro labels (ALL CAPS, small, muted) ─── */
+/* ── Micro label ── */
 .micro-label {
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
 
-/* ─── Data stripe gradient (defining identity) ─── */
-.data-stripe {
-  background: repeating-linear-gradient(
-    90deg,
-    var(--accent-purple) 0px,
-    var(--accent-purple) 4px,
-    var(--accent-blue) 4px,
-    var(--accent-blue) 8px,
-    var(--accent-teal) 8px,
-    var(--accent-teal) 12px,
-    var(--accent-yellow) 12px,
-    var(--accent-yellow) 16px,
-    var(--accent-orange) 16px,
-    var(--accent-orange) 20px,
-    var(--accent-rose) 20px,
-    var(--accent-rose) 24px
-  );
+/* ── Card ── */
+.card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  transition: all 0.3s ease;
 }
 
-.data-stripe-vertical {
-  background: repeating-linear-gradient(
-    0deg,
-    var(--accent-purple) 0px,
-    var(--accent-purple) 4px,
-    var(--accent-blue) 4px,
-    var(--accent-blue) 8px,
-    var(--accent-teal) 8px,
-    var(--accent-teal) 12px,
-    var(--accent-yellow) 12px,
-    var(--accent-yellow) 16px,
-    var(--accent-orange) 16px,
-    var(--accent-orange) 20px,
-    var(--accent-rose) 20px,
-    var(--accent-rose) 24px
-  );
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
 }
 
-.data-stripe-wide {
-  background: repeating-linear-gradient(
-    90deg,
-    var(--accent-purple) 0px,
-    var(--accent-purple) 6px,
-    #C4B5E0 6px,
-    #C4B5E0 8px,
-    var(--accent-blue) 8px,
-    var(--accent-blue) 14px,
-    #A8C4E0 14px,
-    #A8C4E0 16px,
-    var(--accent-teal) 16px,
-    var(--accent-teal) 22px,
-    #A3D4CB 22px,
-    #A3D4CB 24px,
-    var(--accent-yellow) 24px,
-    var(--accent-yellow) 30px,
-    #E5D4A3 30px,
-    #E5D4A3 32px,
-    var(--accent-orange) 32px,
-    var(--accent-orange) 38px,
-    #E0B8A3 38px,
-    #E0B8A3 40px,
-    var(--accent-rose) 40px,
-    var(--accent-rose) 46px,
-    #D4A3B3 46px,
-    #D4A3B3 48px
-  );
+/* ── Terminal (stays dark) ── */
+.terminal {
+  background: var(--bg-terminal);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
 }
 
-/* ─── Waveform pattern (SVG-like using box shadows) ─── */
-.waveform-bars {
+.terminal-header {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 6px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
 }
 
-/* ─── Research grid (subtle) ─── */
-.bg-research-grid {
-  background-image:
-    linear-gradient(to right, rgba(45,41,38,0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(45,41,38,0.03) 1px, transparent 1px);
-  background-size: 64px 64px;
+.terminal-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
 }
 
-/* ─── Pill button (research-grade) ─── */
-.btn-research {
+/* ── Buttons ── */
+.btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 8px 20px;
-  background: var(--bg-dark);
-  color: var(--bg-primary);
+  gap: 8px;
+  padding: 12px 20px;
+  background: #111111;
+  color: #ffffff;
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
-  border-radius: 999px;
+  border-radius: 8px;
   border: none;
   cursor: pointer;
-  transition: opacity 0.2s ease, transform 0.1s ease;
-  white-space: nowrap;
+  transition: all 0.2s ease;
   text-decoration: none;
+  white-space: nowrap;
 }
 
-.btn-research:hover {
-  opacity: 0.85;
+.btn-primary:hover {
+  background: #000000;
+  transform: scale(1.02);
 }
 
-.btn-research:active {
-  transform: scale(0.98);
-}
-
-.btn-research-outline {
+.btn-secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 8px 20px;
+  gap: 8px;
+  padding: 12px 20px;
   background: transparent;
   color: var(--text-secondary);
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
-  border-radius: 999px;
-  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
   cursor: pointer;
   transition: all 0.2s ease;
-  white-space: nowrap;
   text-decoration: none;
+  white-space: nowrap;
 }
 
-.btn-research-outline:hover {
-  border-color: var(--text-muted);
+.btn-secondary:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-light);
   color: var(--text-primary);
 }
 
-/* ─── Flat card ─── */
-.card-flat {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-subtle);
-  border-radius: 10px;
-  transition: border-color 0.2s ease;
-}
-
-.card-flat:hover {
-  border-color: var(--border-light);
-}
-
-.card-dark {
-  background: var(--bg-dark-card);
-  border: 1px solid var(--border-dark);
-  border-radius: 10px;
-}
-
-/* ─── Animations (restrained) ─── */
+/* ── Animations ── */
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes stripe-scroll {
-  from { background-position: 0 0; }
-  to { background-position: 48px 0; }
+@keyframes flow-right {
+  0% { transform: translateX(-10px); opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateX(calc(var(--flow-distance, 100px))); opacity: 0; }
 }
 
-.animate-stripe {
-  animation: stripe-scroll 3s linear infinite;
+@keyframes typing-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
-/* ─── Terminal (dark, research-grade) ─── */
-.terminal-research {
-  background: #0D0C0B;
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.terminal-research-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 14px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-}
-
-.terminal-research-header .dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.12);
-}
-
-/* ─── Section spacing ─── */
+/* ── Section spacing (128px vertical) ── */
 .section-spacing {
-  padding-top: 96px;
-  padding-bottom: 96px;
+  padding-top: 128px;
+  padding-bottom: 128px;
 }
 
 @media (max-width: 768px) {
   .section-spacing {
-    padding-top: 64px;
-    padding-bottom: 64px;
+    padding-top: 80px;
+    padding-bottom: 80px;
   }
 }
 
-/* ─── Scrollbar hide ─── */
+/* ── Scrollbar ── */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
@@ -304,17 +201,15 @@ body {
   scrollbar-width: none;
 }
 
-/* ─── How it Works — mobile overflow fix ─── */
+/* ── Mobile fixes ── */
 @media (max-width: 640px) {
-  .hiw-code-pre {
-    font-size: 10px !important;
-    line-height: 1.6 !important;
-    padding: 10px 12px !important;
-    white-space: pre-wrap;
-    word-break: break-word;
+  .terminal {
+    max-width: 100%;
   }
 
-  .terminal-research {
-    max-width: 100%;
+  .terminal pre {
+    font-size: 10px !important;
+    white-space: pre-wrap;
+    word-break: break-word;
   }
 }

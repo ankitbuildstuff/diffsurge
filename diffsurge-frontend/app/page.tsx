@@ -1,10 +1,12 @@
 import { Header } from "@/components/landing/header";
 import { Hero } from "@/components/landing/hero";
-import { Stats } from "@/components/landing/stats";
-import { Features } from "@/components/landing/features";
+import { Problem } from "@/components/landing/problem";
 import { HowItWorks } from "@/components/landing/how-it-works";
-import { Capabilities } from "@/components/landing/capabilities";
-import { FAQ } from "@/components/landing/faq";
+import { Features } from "@/components/landing/features";
+import { CodeDemo } from "@/components/landing/code-demo";
+import { OpenSource } from "@/components/landing/open-source";
+import { Comparison } from "@/components/landing/comparison";
+import { UseCases } from "@/components/landing/use-cases";
 import { CTA } from "@/components/landing/cta";
 import { Footer } from "@/components/landing/footer";
 import { JsonLd } from "@/components/landing/json-ld";
@@ -16,11 +18,13 @@ export default function Home() {
       <Header />
       <main>
         <Hero />
-        <Stats />
-        <Features />
+        <Problem />
         <HowItWorks />
-        <Capabilities />
-        <FAQ />
+        <Features />
+        <CodeDemo />
+        <OpenSource />
+        <Comparison />
+        <UseCases />
         <CTA />
       </main>
       <Footer />

@@ -9,40 +9,25 @@ export function CTA() {
     <section
       style={{
         background: "var(--bg-dark)",
-        position: "relative",
-        overflow: "hidden",
-        paddingTop: 96,
-        paddingBottom: 96,
+        paddingTop: 128,
+        paddingBottom: 128,
       }}
     >
-      {/* Subtle research grid on dark */}
       <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px)",
-          backgroundSize: "64px 64px",
-        }}
-      />
-
-      {/* Data stripe accent */}
-      <div
-        className="absolute top-0 left-0 right-0 data-stripe-wide animate-stripe"
-        style={{ height: 3 }}
-      />
-
-      <div className="relative mx-auto max-w-[1120px] px-6 text-center">
+        className="mx-auto px-6 text-center"
+        style={{ maxWidth: 1200 }}
+      >
         <FadeIn>
           <h2
-            className="font-editorial"
             style={{
               fontSize: "clamp(2rem, 5vw, 3rem)",
+              fontWeight: 500,
               lineHeight: 1.1,
+              letterSpacing: "-0.02em",
               color: "var(--text-on-dark)",
             }}
           >
-            Ready to stop shipping{" "}
-            <span className="font-editorial-italic">breaking changes?</span>
+            Ready to stop shipping breaking changes?
           </h2>
           <p
             style={{
@@ -50,7 +35,7 @@ export function CTA() {
               maxWidth: 420,
               marginLeft: "auto",
               marginRight: "auto",
-              fontSize: 14,
+              fontSize: 15,
               lineHeight: 1.7,
               color: "var(--text-on-dark-muted)",
             }}
@@ -68,10 +53,10 @@ export function CTA() {
           >
             <Link
               href="/signup"
-              className="btn-research"
+              className="btn-primary"
               style={{
-                background: "var(--bg-primary)",
-                color: "var(--text-primary)",
+                background: "#ffffff",
+                color: "#111111",
               }}
             >
               Start for free
@@ -79,7 +64,7 @@ export function CTA() {
             </Link>
             <Link
               href="/docs"
-              className="btn-research-outline"
+              className="btn-secondary"
               style={{
                 borderColor: "var(--border-dark)",
                 color: "var(--text-on-dark-muted)",
