@@ -16,15 +16,6 @@ Diffsurge helps teams catch API breaking changes before customers do by combinin
 - **Replay validation:** re-run real production requests against new deployments.
 - **Governance:** review drift, audit activity, and team-level API changes.
 
-## Demo GIFs
-
-![CLI Diff Demo](assets/gifs/cli-diff.gif)
-![Traffic Capture Demo](assets/gifs/traffic-capture.gif)
-![Replay Report Demo](assets/gifs/replay-report.gif)
-![Dashboard Demo](assets/gifs/dashboard-overview.gif)
-
-GIF assets are tracked in [assets/gifs/README.md](assets/gifs/README.md). Replace placeholder files with real recordings before the public launch.
-
 ## Architecture at a glance
 
 Diffsurge is a monorepo with three product surfaces:
@@ -99,7 +90,7 @@ diffsurge/
 ├── diffsurge-go/          # Go CLI + API + proxy + replay engine
 ├── diffsurge-frontend/    # Next.js dashboard + marketing site
 ├── surge-cli-npm/   # NPM packaging for CLI binaries
-├── assets/                # GIFs, banners, and visual media
+├── assets/                # Banners and visual media
 └── .github/workflows
 ```
 
