@@ -31,7 +31,7 @@ Diffsurge is a monorepo with three product surfaces:
                                 │ surge CLI   │ Browser
                                 ▼             ▼
 ┌───────────────────────────────────────────────────────────────────────────┐
-│                               Public Internet                              │
+│                               Public Internet                             │
 └──────┬──────────────────────────┬────────────────────────┬────────────────┘
        │ :8080                    │ :3000                  │ :8081
        ▼                          ▼                         ▼
@@ -40,11 +40,11 @@ Diffsurge is a monorepo with three product surfaces:
 │ (diffsurge- │         │ (Dashboard +     │      │ (diffsurge-      │
 │    api)     │ ◄──────►│  Marketing site) │      │   proxy)         │
 └──────┬──────┘         └──────┬───────────┘      └────────┬─────────┘
-       │                       │ Auth (JWT/JWKS)            │ captures
-       │ SQL                   │                            │ sampled traffic
-       ▼                       ▼                            ▼
+       │                       │ Auth (JWT/JWKS)           │ captures
+       │ SQL                   │                           │ sampled traffic
+       ▼                       ▼                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                    Supabase (managed cloud)                       │
+│                    Supabase (managed cloud)                     │
 │  ┌───────────────┐    ┌──────────────┐    ┌───────────────────┐ │
 │  │   PostgreSQL  │    │     Auth     │    │  Storage/Realtime │ │
 │  │ (traffic +    │    │ (JWT issuer, │    │  (optional)       │ │
