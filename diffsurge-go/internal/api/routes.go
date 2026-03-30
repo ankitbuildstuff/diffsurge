@@ -3,11 +3,11 @@ package api
 import (
 	"net/http"
 
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/diffsurge-org/diffsurge/internal/api/handlers"
 	"github.com/diffsurge-org/diffsurge/internal/api/middleware"
 	"github.com/diffsurge-org/diffsurge/internal/storage"
 	"github.com/diffsurge-org/diffsurge/pkg/logger"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type ServerDeps struct {

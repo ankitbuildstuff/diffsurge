@@ -16,7 +16,7 @@ type Server struct {
 	log        *logger.Logger
 	capture    *TrafficCapture
 	router     *Router
-	auth       *ProxyAuth
+	auth       *Auth
 }
 
 func NewServer(cfg *config.ProxyConfig, log *logger.Logger, capture *TrafficCapture, keyStore APIKeyStore) *Server {

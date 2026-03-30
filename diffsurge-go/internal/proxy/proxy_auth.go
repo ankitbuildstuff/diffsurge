@@ -26,8 +26,8 @@ type APIKeyStore interface {
 	UpdateAPIKeyLastUsed(ctx context.Context, id uuid.UUID) error
 }
 
-// ProxyAuth validates API keys on proxy requests and resolves project/environment context.
-type ProxyAuth struct {
+// Auth validates API keys on proxy requests and resolves project/environment context.
+type Auth struct {
 	store         APIKeyStore
 	log           *logger.Logger
 	// Fallback project/environment IDs from static config
@@ -36,21 +36,21 @@ type ProxyAuth struct {
 }
 
 // NewProxyAuth creates a new proxy auth middleware.
-func NewProxyAuth(store APIKeyStore, log *logger.Logger) *ProxyAuth {
-	return &ProxyAuth{
+func NewProxyAuth(store APIKeyStore, log *logger.Logger) *Auth {
+	return &Auth{
 		store: store,
 		log:   log,
 	}
 }
 
 // SetFallback sets static fallback project/environment IDs for requests without an API key.
-func (pa *ProxyAuth) SetFallback(projectID, environmentID uuid.UUID) {
+func (pa *Auth) SetFallback(projectID, environmentID uuid.UUID) {
 	pa.fallbackProjectID = projectID
 	pa.fallbackEnvironmentID = environmentID
 }
 
 // Middleware returns an http.Handler that validates API keys and injects project context.
-func (pa *ProxyAuth) Middleware(next http.Handler) http.Handler {
+func (pa *Auth) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		apiKey := extractAPIKey(r)
 
@@ -75,7 +75,7 @@ func (pa *ProxyAuth) Middleware(next http.Handler) http.Handler {
 }
 
 // resolveAPIKey validates the API key and sets project/environment context.
-func (pa *ProxyAuth) resolveAPIKey(r *http.Request, fullKey string) error {
+func (pa *Auth) resolveAPIKey(r *http.Request, fullKey string) error {
 	if len(fullKey) < 16 {
 		return fmt.Errorf("invalid API key format")
 	}

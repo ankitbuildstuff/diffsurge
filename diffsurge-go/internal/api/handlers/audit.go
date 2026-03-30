@@ -5,12 +5,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/diffsurge-org/diffsurge/internal/api/request"
 	"github.com/diffsurge-org/diffsurge/internal/api/response"
 	"github.com/diffsurge-org/diffsurge/internal/models"
 	"github.com/diffsurge-org/diffsurge/internal/storage"
 	"github.com/diffsurge-org/diffsurge/pkg/logger"
+	"github.com/google/uuid"
 )
 
 type AuditLogHandler struct {
