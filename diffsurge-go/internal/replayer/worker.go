@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/diffsurge-org/diffsurge/internal/models"
 	"github.com/diffsurge-org/diffsurge/internal/storage"
 	"github.com/diffsurge-org/diffsurge/pkg/logger"
+	"github.com/google/uuid"
 )
 
 // SessionRunner orchestrates a full replay session end-to-end:

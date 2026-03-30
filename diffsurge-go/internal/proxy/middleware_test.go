@@ -5,8 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/diffsurge-org/diffsurge/pkg/logger"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRequestIDMiddleware_GeneratesID(t *testing.T) {

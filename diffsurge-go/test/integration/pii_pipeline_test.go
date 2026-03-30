@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/diffsurge-org/diffsurge/internal/models"
 	"github.com/diffsurge-org/diffsurge/internal/pii"
 	"github.com/diffsurge-org/diffsurge/internal/storage"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestPIIPipelineEndToEnd tests the full flow: Request → PII Redaction → Storage → Verification

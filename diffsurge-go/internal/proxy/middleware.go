@@ -6,8 +6,8 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/diffsurge-org/diffsurge/pkg/logger"
+	"github.com/google/uuid"
 )
 
 type contextKey string

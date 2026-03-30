@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
+	"github.com/diffsurge-org/diffsurge/internal/models"
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/diffsurge-org/diffsurge/internal/models"
 )
 
 func setupTestRedis(t *testing.T) (*RedisStore, *miniredis.Miniredis) {

@@ -3,9 +3,9 @@ package replayer
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/diffsurge-org/diffsurge/internal/diffing"
 	"github.com/diffsurge-org/diffsurge/internal/models"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestComparer_IdenticalResponses(t *testing.T) {

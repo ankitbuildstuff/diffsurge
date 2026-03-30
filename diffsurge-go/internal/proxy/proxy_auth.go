@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/diffsurge-org/diffsurge/internal/models"
 	"github.com/diffsurge-org/diffsurge/pkg/logger"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -28,8 +28,8 @@ type APIKeyStore interface {
 
 // Auth validates API keys on proxy requests and resolves project/environment context.
 type Auth struct {
-	store         APIKeyStore
-	log           *logger.Logger
+	store APIKeyStore
+	log   *logger.Logger
 	// Fallback project/environment IDs from static config
 	fallbackProjectID     uuid.UUID
 	fallbackEnvironmentID uuid.UUID

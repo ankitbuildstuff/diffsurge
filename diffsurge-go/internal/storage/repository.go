@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/diffsurge-org/diffsurge/internal/models"
+	"github.com/google/uuid"
 )
 
 type TrafficFilter struct {

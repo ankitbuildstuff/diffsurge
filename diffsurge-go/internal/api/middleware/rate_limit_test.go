@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/diffsurge-org/diffsurge/pkg/logger"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/diffsurge-org/diffsurge/pkg/logger"
 )
 
 // MockRateLimiter is a mock implementation of RateLimiter

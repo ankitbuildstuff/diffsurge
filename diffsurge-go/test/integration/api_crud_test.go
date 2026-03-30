@@ -11,6 +11,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/diffsurge-org/diffsurge/internal/api"
+	"github.com/diffsurge-org/diffsurge/internal/api/middleware"
+	"github.com/diffsurge-org/diffsurge/internal/models"
+	"github.com/diffsurge-org/diffsurge/internal/storage"
+	"github.com/diffsurge-org/diffsurge/pkg/logger"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
@@ -18,11 +23,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"github.com/diffsurge-org/diffsurge/internal/api"
-	"github.com/diffsurge-org/diffsurge/internal/api/middleware"
-	"github.com/diffsurge-org/diffsurge/internal/models"
-	"github.com/diffsurge-org/diffsurge/internal/storage"
-	"github.com/diffsurge-org/diffsurge/pkg/logger"
 )
 
 // setupTestDB creates a PostgreSQL container and returns the connection string

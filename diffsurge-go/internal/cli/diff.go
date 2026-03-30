@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
 	"github.com/diffsurge-org/diffsurge/internal/diffing"
+	"github.com/spf13/cobra"
 )
 
 var (

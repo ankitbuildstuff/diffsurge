@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/diffsurge-org/diffsurge/internal/models"
+	"github.com/diffsurge-org/diffsurge/pkg/logger"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/diffsurge-org/diffsurge/internal/models"
-	"github.com/diffsurge-org/diffsurge/pkg/logger"
 )
 
 func TestReplayer_BasicReplay(t *testing.T) {

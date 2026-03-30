@@ -15,11 +15,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"github.com/diffsurge-org/diffsurge/internal/api/response"
 	"github.com/diffsurge-org/diffsurge/internal/storage"
 	"github.com/diffsurge-org/diffsurge/pkg/logger"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 

@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/diffsurge-org/diffsurge/internal/api/response"
 	"github.com/diffsurge-org/diffsurge/pkg/logger"
+	"github.com/google/uuid"
 )
 
 // RateLimiter defines the interface for rate limiting storage

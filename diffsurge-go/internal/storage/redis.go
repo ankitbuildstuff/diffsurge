@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/diffsurge-org/diffsurge/internal/models"
+	"github.com/go-redis/redis/v8"
 )
 
 const (

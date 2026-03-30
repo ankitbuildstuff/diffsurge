@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/diffsurge-org/diffsurge/internal/models"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
-	"github.com/diffsurge-org/diffsurge/internal/models"
 )
 
 type PostgresStore struct {

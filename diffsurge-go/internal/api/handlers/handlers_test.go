@@ -3,8 +3,8 @@ package handlers
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/diffsurge-org/diffsurge/internal/models"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGenerateSlug(t *testing.T) {
