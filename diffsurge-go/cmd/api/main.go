@@ -17,6 +17,20 @@ import (
 )
 
 func main() {
+	// healthcheck subcommand: used by Docker HEALTHCHECK, avoids the need for
+	// wget/curl in the container image.
+	if len(os.Args) > 1 && os.Args[1] == "healthcheck" {
+		port := "8080"
+		if p := os.Getenv("PORT"); p != "" {
+			port = p
+		}
+		resp, err := http.Get("http://localhost:" + port + "/api/v1/health")
+		if err != nil || resp.StatusCode >= 500 {
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+
 	log := logger.Default()
 
 	cfg, err := config.Load("")

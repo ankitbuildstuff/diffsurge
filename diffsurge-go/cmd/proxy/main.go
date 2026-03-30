@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,6 +14,17 @@ import (
 )
 
 func main() {
+	// healthcheck subcommand: used by Docker HEALTHCHECK, avoids the need for
+	// wget/curl in the container image.
+	if len(os.Args) > 1 && os.Args[1] == "healthcheck" {
+		addr := "http://localhost:8080/health"
+		resp, err := http.Get(addr)
+		if err != nil || resp.StatusCode >= 500 {
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+
 	log := logger.Default()
 
 	cfg, err := config.Load("")

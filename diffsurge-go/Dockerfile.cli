@@ -1,44 +1,8 @@
-# ============================================================================
-# Diffsurge CLI - Multi-stage Docker Build
-# Final image size target: < 20MB
-# ============================================================================
+# DEPRECATED — replaced by the consolidated Dockerfile.
+#
+# Build the CLI with:
+#   docker build --build-arg SERVICE=cli -t diffsurge-cli -f Dockerfile .
+#
+# See Dockerfile for the full build definition.
+FROM scratch
 
-# Stage 1: Builder
-FROM golang:1.24-alpine AS builder
-
-RUN apk add --no-cache git ca-certificates tzdata
-
-WORKDIR /build
-
-COPY go.mod go.sum ./
-RUN go mod download
-
-COPY cmd/ ./cmd/
-COPY internal/ ./internal/
-COPY pkg/ ./pkg/
-
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-    -ldflags="-w -s -X github.com/diffsurge-org/diffsurge/internal/config.Version=$(git describe --tags --always --dirty)" \
-    -o surge \
-    ./cmd/cli/main.go
-
-# Stage 2: Final minimal image
-FROM alpine:3.19
-
-RUN apk add --no-cache ca-certificates
-
-RUN addgroup -g 1000 surge && \
-    adduser -D -u 1000 -G surge surge
-
-WORKDIR /app
-
-COPY --from=builder /build/surge /app/surge
-
-RUN chown -R surge:surge /app
-
-USER surge
-
-HEALTHCHECK NONE
-
-ENTRYPOINT ["/app/surge"]
-CMD ["--help"]

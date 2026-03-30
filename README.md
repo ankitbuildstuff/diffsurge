@@ -24,14 +24,48 @@ Diffsurge is a monorepo with three product surfaces:
 - **Next.js app (`diffsurge-frontend`)**: marketing site + authenticated dashboard.
 - **NPM CLI wrapper (`surge-cli-npm`)**: installable distribution of CLI binaries.
 
+```
+                        ┌─────────────────────────────────────┐
+                        │           End Users / CI             │
+                        └───────┬─────────────┬───────────────┘
+                                │ surge CLI   │ Browser
+                                ▼             ▼
+┌───────────────────────────────────────────────────────────────────────────┐
+│                               Public Internet                              │
+└──────┬──────────────────────────┬────────────────────────┬────────────────┘
+       │ :8080                    │ :3000                  │ :8081
+       ▼                          ▼                         ▼
+┌─────────────┐         ┌──────────────────┐      ┌──────────────────┐
+│  API Server │         │ Next.js Frontend │      │  Traffic Proxy   │
+│ (diffsurge- │         │ (Dashboard +     │      │ (diffsurge-      │
+│    api)     │ ◄──────►│  Marketing site) │      │   proxy)         │
+└──────┬──────┘         └──────┬───────────┘      └────────┬─────────┘
+       │                       │ Auth (JWT/JWKS)            │ captures
+       │ SQL                   │                            │ sampled traffic
+       ▼                       ▼                            ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    Supabase (managed cloud)                       │
+│  ┌───────────────┐    ┌──────────────┐    ┌───────────────────┐ │
+│  │   PostgreSQL  │    │     Auth     │    │  Storage/Realtime │ │
+│  │ (traffic +    │    │ (JWT issuer, │    │  (optional)       │ │
+│  │  diff data)   │    │  JWKS keys)  │    │                   │ │
+│  └───────────────┘    └──────────────┘    └───────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+       ▲
+       │ replay results
+┌──────┴──────────┐      ┌──────────────┐
+│ Replay Engine   │      │  Upstash     │
+│ (diffsurge-     │◄────►│  Redis       │
+│   replayer)     │      │  (job queue) │
+└─────────────────┘      └──────────────┘
+```
+
 High-level runtime flow:
 
 1. Proxy captures sampled traffic and stores request/response metadata.
 2. Replay engine re-executes captured traffic against candidate deployments.
 3. Diffing/comparison logic scores drift and breaking changes.
 4. Dashboard + API expose results for triage and audit.
-
-Detailed architecture and implementation documents are maintained internally.
 
 ## Quick start
 
@@ -48,14 +82,16 @@ cp .env.example .env
 cp diffsurge-frontend/.env.example diffsurge-frontend/.env.local
 ```
 
-Update `.env` values for:
+The table below explains every required variable and which service uses it:
 
-- `DIFFSURGE_STORAGE_POSTGRES_URL`
-- `DIFFSURGE_STORAGE_REDIS_URL`
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `SUPABASE_JWT_SECRET`
+| Variable | Used by | Why it's needed |
+|---|---|---|
+| `DIFFSURGE_STORAGE_POSTGRES_URL` | api, proxy, replayer | Primary datastore — PostgreSQL connection string (e.g. Supabase DB URL) where traffic captures and diff results are persisted. |
+| `DIFFSURGE_STORAGE_REDIS_URL` | api, replayer | Job queue — Upstash/Redis URL used by the replay engine to enqueue and dequeue replay sessions. |
+| `NEXT_PUBLIC_SUPABASE_URL` | frontend, api | The Supabase project URL. The frontend uses it to initialize the Supabase JS client for auth flows. The API uses it as the JWKS endpoint (`{url}/auth/v1/jwks`) to verify access tokens without round-tripping Supabase on every request. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | frontend | Public Supabase anon key — safe to expose in the browser. Enables unauthenticated Supabase operations (e.g. sign-up, sign-in) from the Next.js client. |
+| `SUPABASE_SERVICE_ROLE_KEY` | frontend (server), api | Supabase service-role key — **secret, never expose client-side**. Used by Next.js API routes to perform privileged DB operations (e.g. user management) and by the Go API as a fallback for admin-level Supabase calls. |
+| `SUPABASE_JWT_SECRET` | api | HS256 secret used to verify Supabase-issued JWTs locally. The API validates `Authorization: Bearer <token>` headers against this secret so that authentication does not require a network call to Supabase on every request. |
 
 ### 3) Run stack
 

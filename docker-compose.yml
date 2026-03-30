@@ -6,7 +6,9 @@ services:
   api:
     build:
       context: ./diffsurge-go
-      dockerfile: Dockerfile.api
+      dockerfile: Dockerfile
+      args:
+        SERVICE: api
     ports:
       - "8080:8080"
     environment:
@@ -19,17 +21,10 @@ services:
       - LOG_LEVEL=info
       - LOG_FORMAT=json
     healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:8080/api/v1/health",
-        ]
+      test: ["CMD", "/app/diffsurge", "healthcheck"]
       interval: 30s
       timeout: 5s
+      start_period: 10s
       retries: 3
     networks:
       - diffsurge-network
@@ -38,7 +33,9 @@ services:
   proxy:
     build:
       context: ./diffsurge-go
-      dockerfile: Dockerfile.proxy
+      dockerfile: Dockerfile
+      args:
+        SERVICE: proxy
     ports:
       - "8081:8080"
     environment:
@@ -49,17 +46,10 @@ services:
     volumes:
       - ./diffsurge-go/configs/proxy.example.yaml:/app/configs/proxy.yaml:ro
     healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:8080/health",
-        ]
+      test: ["CMD", "/app/diffsurge", "healthcheck"]
       interval: 30s
       timeout: 5s
+      start_period: 10s
       retries: 3
     networks:
       - diffsurge-network
@@ -68,7 +58,9 @@ services:
   replayer:
     build:
       context: ./diffsurge-go
-      dockerfile: Dockerfile.replayer
+      dockerfile: Dockerfile
+      args:
+        SERVICE: replayer
     environment:
       - DIFFSURGE_STORAGE_POSTGRES_URL=${DIFFSURGE_STORAGE_POSTGRES_URL}
       - DIFFSURGE_STORAGE_REDIS_URL=${DIFFSURGE_STORAGE_REDIS_URL}
