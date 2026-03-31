@@ -1,20 +1,46 @@
-# Diffsurge — Traffic Version Control for APIs
+# DiffSurge: Catch breaking API changes before your users do
 
-![Diffsurge](assets/banner/diffsurge_og.png)
-
-Diffsurge helps teams catch API breaking changes before customers do by combining schema diffing, production traffic capture, and replay validation.
+Replay production traffic against new API versions. Detect schema + behavior breakages in <60s.
 
 [![Go CI](https://github.com/diffsurge-org/diffsurge/actions/workflows/go.yml/badge.svg)](https://github.com/diffsurge-org/diffsurge/actions/workflows/go.yml)
 [![Frontend CI](https://github.com/diffsurge-org/diffsurge/actions/workflows/frontend.yml/badge.svg)](https://github.com/diffsurge-org/diffsurge/actions/workflows/frontend.yml)
 [![Release](https://github.com/diffsurge-org/diffsurge/actions/workflows/release.yml/badge.svg)](https://github.com/diffsurge-org/diffsurge/actions/workflows/release.yml)
+[![npm](https://img.shields.io/npm/v/diffsurge)](https://www.npmjs.com/package/diffsurge)
+[![docker](https://img.shields.io/docker/v/diffsurge/cli?label=docker)](https://hub.docker.com/r/diffsurge/cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Why Diffsurge
+## Why DiffSurge
 
 - **CLI first:** compare schemas and payloads in local dev + CI.
 - **Traffic-aware:** capture real API traffic with a low-overhead proxy.
 - **Replay validation:** re-run real production requests against new deployments.
 - **Governance:** review drift, audit activity, and team-level API changes.
+
+## Quickstart
+
+```bash
+npm install -g diffsurge
+surge capture
+surge replay --against v2
+```
+
+### Alternative install methods
+
+```bash
+# If npm fails — pre-built binary:
+curl -sSL https://get.diffsurge.com/install.sh | sh
+
+# Or Docker:
+docker run -v $(pwd):/work diffsurge/cli surge replay
+```
+
+## Comparison
+
+| Feature | DiffSurge | Postman | Keploy |
+|---|---|---|---|
+| Production traffic replay | ✅ | ❌ | ✅ |
+| Schema + behavior diff | ✅ | ❌ | ⚠️ |
+| Zero-config CLI | ✅ | ❌ | ❌ |
 
 ## Architecture at a glance
 
@@ -67,7 +93,7 @@ High-level runtime flow:
 3. Diffing/comparison logic scores drift and breaking changes.
 4. Dashboard + API expose results for triage and audit.
 
-## Quick start
+## Full setup (development)
 
 ### 1) Prerequisites
 
@@ -126,6 +152,8 @@ diffsurge/
 ├── diffsurge-go/          # Go CLI + API + proxy + replay engine
 ├── diffsurge-frontend/    # Next.js dashboard + marketing site
 ├── surge-cli-npm/   # NPM packaging for CLI binaries
+├── docs/                  # Demo GIF + supplementary docs
+├── scripts/               # Build and release scripts
 ├── assets/                # Banners and visual media
 └── .github/workflows
 ```

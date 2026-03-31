@@ -1,0 +1,41 @@
+{
+  "name": "diffsurge",
+  "version": "0.3.1",
+  "description": "Catch breaking API changes before your users do — replay production traffic against new API versions",
+  "keywords": [
+    "api",
+    "traffic",
+    "diff",
+    "schema",
+    "replay",
+    "testing",
+    "proxy",
+    "cli",
+    "breaking-changes"
+  ],
+  "homepage": "https://diffsurge.com",
+  "bugs": {
+    "url": "https://github.com/ankitbuildstuff/diffsurge/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ankitbuildstuff/diffsurge.git"
+  },
+  "license": "MIT",
+  "author": "Ankit Mahopatra",
+  "bin": {
+    "surge": "./bin/cli.js"
+  },
+  "scripts": {
+    "preinstall": "node scripts/preinstall.js || true"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "files": [
+    "bin/",
+    "scripts/preinstall.js",
+    "README.md",
+    "LICENSE"
+  ]
+}
