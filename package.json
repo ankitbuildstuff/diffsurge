@@ -1,6 +1,6 @@
 {
   "name": "diffsurge",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Catch breaking API changes before your users do — replay production traffic against new API versions",
   "keywords": [
     "api",

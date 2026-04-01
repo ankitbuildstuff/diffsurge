@@ -1,6 +1,6 @@
 {
   "name": "diffsurge",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Diffsurge CLI — API traffic capture, diff, schema comparison, replay, and CI/CD checks with API key auth",
   "keywords": [
     "api",
