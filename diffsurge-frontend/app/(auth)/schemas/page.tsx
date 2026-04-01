@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { schemasApi } from "@/lib/api/schemas";
 import { useProject } from "@/lib/providers/project-provider";
-import { FileCode2, Plus, GitBranch, GitCommit } from "lucide-react";
+import { FileCode2, Plus, GitBranch, GitCommit, GitCompare } from "lucide-react";
 import { toast } from "sonner";
 import { ErrorState } from "@/components/ui/error-state";
 
@@ -76,13 +77,24 @@ export default function SchemasPage() {
             API schema versions and diff history
           </p>
         </div>
-        <button
-          onClick={() => setShowUpload(!showUpload)}
-          className="flex items-center gap-1.5 rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-zinc-800"
-        >
-          <Plus size={14} />
-          Upload Schema
-        </button>
+        <div className="flex items-center gap-2">
+          {versions.length >= 2 && (
+            <Link
+              href="/schemas/diff"
+              className="flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm transition-colors hover:bg-zinc-50"
+            >
+              <GitCompare size={14} />
+              Compare Versions
+            </Link>
+          )}
+          <button
+            onClick={() => setShowUpload(!showUpload)}
+            className="flex items-center gap-1.5 rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-zinc-800"
+          >
+            <Plus size={14} />
+            Upload Schema
+          </button>
+        </div>
       </div>
 
       {showUpload && (

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"text/tabwriter"
 
@@ -64,13 +65,14 @@ func runCheck(cmd *cobra.Command, args []string) error {
 
 	hasFailures := false
 
-	// 1. Validate API key by checking health
+	// 1. Validate API key against an authenticated endpoint
 	fmt.Fprintf(cmd.OutOrStdout(), "→ Validating API key... ")
-	_, err := client.Get("/api/v1/health")
+	orgResp, err := client.Get("/api/v1/organizations")
 	if err != nil {
 		fmt.Fprintf(cmd.OutOrStdout(), "✗\n")
 		return fmt.Errorf("API key validation failed: %w", err)
 	}
+	orgResp.Body.Close()
 	fmt.Fprintf(cmd.OutOrStdout(), "✓\n")
 
 	// 2. Fetch traffic stats
@@ -128,8 +130,9 @@ func runCheck(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("reading schema file: %w", err)
 		}
 
-		schemaPayload := fmt.Sprintf(`{"schema_content": %s, "version": "ci-check"}`,
-			jsonEscapeString(string(schemaContent)))
+		schemaPayload := fmt.Sprintf(`{"schema_content": %s, "schema_type": %s, "version": "ci-check"}`,
+			jsonEscapeString(string(schemaContent)),
+			jsonEscapeString(inferSchemaType(checkSchemaFile)))
 
 		diffResp, err := client.Post(
 			fmt.Sprintf("/api/v1/projects/%s/schemas/diff", projectID),
@@ -175,4 +178,13 @@ func runCheck(cmd *cobra.Command, args []string) error {
 func jsonEscapeString(s string) string {
 	b, _ := json.Marshal(s)
 	return string(b)
+}
+
+func inferSchemaType(path string) string {
+	switch strings.ToLower(filepath.Ext(path)) {
+	case ".graphql", ".gql":
+		return "graphql"
+	default:
+		return "openapi"
+	}
 }

@@ -3,9 +3,9 @@
 /**
  * preinstall.js — Runs during `npm install diffsurge`
  *
- * 1. Checks if Go is available (for local `go run` fallback)
- * 2. If no Go, downloads the pre-built binary for the current platform
- *    from GitHub Releases into bin/surge-engine
+ * Downloads the pre-built binary for the current platform from GitHub
+ * Releases into bin/surge-engine. Go remains a source-checkout fallback at
+ * runtime, but npm installs should not depend on it.
  */
 
 const os = require("os");
@@ -76,25 +76,31 @@ function download(url) {
 // ── main ───────────────────────────────────────────────────────────────────
 
 async function main() {
-  // If Go is available, the CLI wrapper (bin/cli.js) can use `go run` directly.
-  // Skip binary download to keep install fast.
-  if (hasGo()) {
-    console.log("✔ Go detected — surge will use `go run` as fallback. Skipping binary download.");
-    return;
-  }
-
   const suffix = getPlatformSuffix();
   if (!suffix) {
     console.warn(
       `⚠ Unsupported platform: ${os.platform()}-${os.arch()}\n` +
         `  Use Docker instead: docker run diffsurge/cli surge --help`
     );
+    if (hasGo()) {
+      console.warn("  Go was detected, so source-checkout usage can still fall back to `go run`.");
+    }
     return; // non-fatal — cli.js will show a helpful error at runtime
   }
 
   const version = getVersion();
   const binaryName = `surge-${suffix}`;
   const url = `https://github.com/${REPO}/releases/download/v${version}/${binaryName}.gz`;
+  const isWindows = os.platform() === "win32";
+  const dest = path.join(BIN_DIR, isWindows ? "surge-engine.exe" : "surge-engine");
+
+  if (fs.existsSync(dest)) {
+    const stat = fs.statSync(dest);
+    if (stat.size > 1024 * 1024) {
+      console.log("✔ Found existing surge-engine binary. Skipping download.");
+      return;
+    }
+  }
 
   console.log(`⬇ Downloading surge v${version} for ${os.platform()}-${os.arch()}…`);
 
@@ -103,9 +109,6 @@ async function main() {
     const decompressed = zlib.gunzipSync(compressed);
 
     fs.mkdirSync(BIN_DIR, { recursive: true });
-
-    const isWindows = os.platform() === "win32";
-    const dest = path.join(BIN_DIR, isWindows ? "surge-engine.exe" : "surge-engine");
     fs.writeFileSync(dest, decompressed);
 
     if (!isWindows) {
@@ -115,7 +118,10 @@ async function main() {
     console.log(`✔ Installed surge-engine (${(decompressed.length / 1024 / 1024).toFixed(1)} MB)`);
   } catch (err) {
     console.warn(`⚠ Binary download failed: ${err.message}`);
-    console.warn(`  surge will still work if Go 1.24+ is installed.`);
+    if (hasGo()) {
+      console.warn(`  Go 1.24+ was detected, so local source checkouts can still use \
+\`go run\`.`);
+    }
     console.warn(`  Or use Docker: docker run diffsurge/cli surge --help`);
     // non-fatal
   }

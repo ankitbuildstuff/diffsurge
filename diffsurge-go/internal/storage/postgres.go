@@ -774,10 +774,10 @@ func (s *PostgresStore) UpdateReplaySession(ctx context.Context, session *models
 func (s *PostgresStore) GetPendingSessions(ctx context.Context, limit int) ([]PendingSession, error) {
 	query := `
 		SELECT rs.id, rs.name, rs.project_id, rs.source_environment_id, rs.sample_size, rs.created_at,
-		       e.base_url, rs.traffic_start_time, rs.traffic_end_time
+		       e.base_url, rs.start_time, rs.end_time
 		FROM replay_sessions rs
 		JOIN environments e ON e.id = rs.target_environment_id
-		WHERE rs.status = 'pending'
+		WHERE rs.status = 'pending' AND rs.started_at IS NOT NULL
 		ORDER BY rs.created_at ASC
 		LIMIT $1
 	`

@@ -12,7 +12,7 @@ Replay production traffic against new API versions. Detect schema + behavior bre
 ## Why DiffSurge
 
 - **CLI first:** compare schemas and payloads in local dev + CI.
-- **Traffic-aware:** capture real API traffic with a low-overhead proxy.
+- **Traffic-aware:** capture real API traffic with a low-overhead proxy service.
 - **Replay validation:** re-run real production requests against new deployments.
 - **Governance:** review drift, audit activity, and team-level API changes.
 
@@ -20,9 +20,11 @@ Replay production traffic against new API versions. Detect schema + behavior bre
 
 ```bash
 npm install -g diffsurge
-surge capture
-surge replay --against v2
+surge schema diff --old openapi-v1.yaml --new openapi-v2.yaml --fail-on-breaking
+surge replay --source traffic.json --target http://localhost:8080
 ```
+
+`npm install -g diffsurge` installs a prebuilt CLI binary on supported platforms, so Go is not required for a normal npm install.
 
 ### Alternative install methods
 

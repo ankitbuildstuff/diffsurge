@@ -66,7 +66,6 @@ function Section({
               fontSize: 22,
               fontWeight: 500,
               color: "var(--text-primary)",
-              letterSpacing: "-0.01em",
             }}
           >
             {title}
@@ -282,7 +281,7 @@ export default function DocsPage() {
             gap: 48,
             gridTemplateColumns: "1fr",
           }}
-          className="md:!grid-cols-[240px_1fr]"
+          className="md:grid-cols-[240px_1fr]!"
         >
           {/* ─── Sidebar TOC ─── */}
           <aside className="hidden md:block">
@@ -443,8 +442,8 @@ export default function DocsPage() {
                   }}
                 >
                   Diffsurge is a CLI tool and infrastructure for catching breaking
-                  API changes. Compare schemas, capture traffic, and replay
-                  requests against staging builds.
+                  API changes. Compare schemas and replay captured requests
+                  against staging builds.
                 </p>
 
               </div>

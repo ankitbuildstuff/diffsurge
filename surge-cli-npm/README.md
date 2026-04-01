@@ -10,6 +10,8 @@ Diffsurge helps you detect breaking API changes before they reach production.
 npm install -g diffsurge
 ```
 
+This install path uses prebuilt binaries on supported platforms, so Go is not required.
+
 Or use Docker:
 
 ```bash

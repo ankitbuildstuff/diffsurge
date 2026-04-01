@@ -2,6 +2,7 @@ package diffing
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -30,6 +31,20 @@ func (sc *SchemaComparer) CompareFiles(oldPath, newPath string) ([]Diff, []Break
 	newSpec, err := loadOpenAPISpec(newPath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("loading new spec: %w", err)
+	}
+
+	return sc.Compare(oldSpec, newSpec)
+}
+
+func (sc *SchemaComparer) CompareContents(oldContent, newContent interface{}) ([]Diff, []BreakingChange, error) {
+	oldSpec, err := loadOpenAPISpecFromContent(oldContent)
+	if err != nil {
+		return nil, nil, fmt.Errorf("loading old schema content: %w", err)
+	}
+
+	newSpec, err := loadOpenAPISpecFromContent(newContent)
+	if err != nil {
+		return nil, nil, fmt.Errorf("loading new schema content: %w", err)
 	}
 
 	return sc.Compare(oldSpec, newSpec)
@@ -570,6 +585,25 @@ func loadOpenAPISpec(path string) (*openapi3.T, error) {
 		return nil, fmt.Errorf("reading file: %w", err)
 	}
 
+	return loadOpenAPISpecFromData(data)
+}
+
+func loadOpenAPISpecFromContent(content interface{}) (*openapi3.T, error) {
+	switch value := content.(type) {
+	case string:
+		return loadOpenAPISpecFromData([]byte(value))
+	case []byte:
+		return loadOpenAPISpecFromData(value)
+	default:
+		data, err := json.Marshal(value)
+		if err != nil {
+			return nil, fmt.Errorf("encoding schema content: %w", err)
+		}
+		return loadOpenAPISpecFromData(data)
+	}
+}
+
+func loadOpenAPISpecFromData(data []byte) (*openapi3.T, error) {
 	loader := openapi3.NewLoader()
 	spec, err := loader.LoadFromData(data)
 	if err != nil {

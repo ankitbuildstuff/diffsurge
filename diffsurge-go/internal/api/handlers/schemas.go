@@ -8,6 +8,7 @@ import (
 	"github.com/diffsurge-org/diffsurge/internal/api/middleware"
 	"github.com/diffsurge-org/diffsurge/internal/api/request"
 	"github.com/diffsurge-org/diffsurge/internal/api/response"
+	"github.com/diffsurge-org/diffsurge/internal/diffing"
 	"github.com/diffsurge-org/diffsurge/internal/models"
 	"github.com/diffsurge-org/diffsurge/internal/storage"
 	"github.com/diffsurge-org/diffsurge/pkg/logger"
@@ -32,8 +33,11 @@ type uploadSchemaRequest struct {
 }
 
 type schemaDiffRequest struct {
-	FromVersionID string `json:"from_version_id"`
-	ToVersionID   string `json:"to_version_id"`
+	FromVersionID string      `json:"from_version_id"`
+	ToVersionID   string      `json:"to_version_id"`
+	SchemaContent interface{} `json:"schema_content,omitempty"`
+	SchemaType    string      `json:"schema_type,omitempty"`
+	Version       string      `json:"version,omitempty"`
 }
 
 func (h *SchemaHandler) List(w http.ResponseWriter, r *http.Request) {
@@ -131,43 +135,170 @@ func (h *SchemaHandler) Diff(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.FromVersionID == "" || req.ToVersionID == "" {
+	if req.SchemaContent == nil && (req.FromVersionID == "" || req.ToVersionID == "") {
 		response.ValidationError(w, []response.FieldError{
-			{Field: "from_version_id", Message: "From version ID is required"},
-			{Field: "to_version_id", Message: "To version ID is required"},
+			{Field: "from_version_id", Message: "Provide from_version_id and to_version_id, or supply schema_content for an inline diff"},
+			{Field: "to_version_id", Message: "Provide from_version_id and to_version_id, or supply schema_content for an inline diff"},
 		})
 		return
 	}
 
-	fromID, err := uuid.Parse(req.FromVersionID)
+	versions, err := h.store.ListSchemaVersions(r.Context(), projectID)
 	if err != nil {
-		response.BadRequest(w, "invalid from_version_id format")
-		return
-	}
-	toID, err := uuid.Parse(req.ToVersionID)
-	if err != nil {
-		response.BadRequest(w, "invalid to_version_id format")
-		return
-	}
-
-	// Placeholder: actual schema diff logic would use internal/diffing
-	diff := &models.SchemaDiff{
-		ID:                 uuid.New(),
-		ProjectID:          projectID,
-		FromVersionID:      fromID,
-		ToVersionID:        toID,
-		DiffReport:         map[string]interface{}{"status": "diff computed"},
-		HasBreakingChanges: false,
-		CreatedAt:          time.Now(),
-	}
-
-	if err := h.store.SaveSchemaDiff(r.Context(), diff); err != nil {
-		h.log.Error().Err(err).Msg("failed to save schema diff")
+		h.log.Error().Err(err).Msg("failed to list schema versions for diff")
 		response.InternalError(w)
 		return
 	}
 
+	var (
+		fromVersion *models.SchemaVersion
+		toVersion   *models.SchemaVersion
+		newContent  interface{}
+	)
+
+	if req.SchemaContent != nil {
+		if len(versions) == 0 {
+			response.NotFound(w, "Schema version")
+			return
+		}
+		fromVersion = &versions[0]
+		newContent = req.SchemaContent
+	} else {
+		fromVersion = findSchemaVersionByID(versions, req.FromVersionID)
+		if fromVersion == nil {
+			response.NotFound(w, "From schema version")
+			return
+		}
+
+		toVersion = findSchemaVersionByID(versions, req.ToVersionID)
+		if toVersion == nil {
+			response.NotFound(w, "To schema version")
+			return
+		}
+
+		newContent = toVersion.SchemaContent
+	}
+
+	schemaType := fromVersion.SchemaType
+	if req.SchemaType != "" && req.SchemaType != schemaType {
+		response.BadRequest(w, "schema_type must match the stored base schema type")
+		return
+	}
+	if toVersion != nil && toVersion.SchemaType != schemaType {
+		response.BadRequest(w, "schema versions must have the same schema_type")
+		return
+	}
+	if schemaType != "openapi" {
+		response.BadRequest(w, "schema diff currently supports only openapi schemas")
+		return
+	}
+
+	comparer := diffing.NewSchemaComparer()
+	diffs, breakingChanges, err := comparer.CompareContents(fromVersion.SchemaContent, newContent)
+	if err != nil {
+		response.BadRequest(w, "schema diff failed: "+err.Error())
+		return
+	}
+
+	diffReport := buildSchemaDiffReport(diffs, breakingChanges)
+	result := map[string]interface{}{
+		"project_id":             projectID,
+		"from_version_id":        fromVersion.ID,
+		"diff_report":            diffReport,
+		"has_breaking_changes":   len(breakingChanges) > 0,
+		"breaking_changes":       formatBreakingChanges(breakingChanges),
+		"breaking_changes_count": len(breakingChanges),
+		"created_at":             time.Now(),
+	}
+
+	if toVersion != nil {
+		persistedDiff := &models.SchemaDiff{
+			ID:                 uuid.New(),
+			ProjectID:          projectID,
+			FromVersionID:      fromVersion.ID,
+			ToVersionID:        toVersion.ID,
+			DiffReport:         diffReport,
+			HasBreakingChanges: len(breakingChanges) > 0,
+			BreakingChanges:    formatBreakingChanges(breakingChanges),
+			CreatedAt:          time.Now(),
+		}
+
+		if err := h.store.SaveSchemaDiff(r.Context(), persistedDiff); err != nil {
+			h.log.Error().Err(err).Msg("failed to save schema diff")
+			response.InternalError(w)
+			return
+		}
+
+		result["id"] = persistedDiff.ID
+		result["to_version_id"] = toVersion.ID
+		result["created_at"] = persistedDiff.CreatedAt
+	}
+
 	response.JSON(w, http.StatusOK, map[string]interface{}{
-		"data": diff,
+		"data": result,
 	})
+}
+
+func findSchemaVersionByID(versions []models.SchemaVersion, versionID string) *models.SchemaVersion {
+	for i := range versions {
+		if versions[i].ID.String() == versionID {
+			return &versions[i]
+		}
+	}
+	return nil
+}
+
+func buildSchemaDiffReport(diffs []diffing.Diff, breakingChanges []diffing.BreakingChange) map[string]interface{} {
+	nonBreakingChanges := make([]map[string]string, 0, len(diffs))
+	for _, diff := range diffs {
+		if diff.Severity == diffing.SeverityBreaking {
+			continue
+		}
+		nonBreakingChanges = append(nonBreakingChanges, map[string]string{
+			"path":        diff.Path,
+			"type":        string(diff.Type),
+			"description": describeDiff(diff),
+		})
+	}
+
+	formattedBreaking := formatBreakingChanges(breakingChanges)
+
+	return map[string]interface{}{
+		"summary": map[string]interface{}{
+			"total_changes":        len(diffs),
+			"breaking_changes":     len(formattedBreaking),
+			"non_breaking_changes": len(nonBreakingChanges),
+			"has_breaking_changes": len(formattedBreaking) > 0,
+		},
+		"breaking_changes":     formattedBreaking,
+		"non_breaking_changes": nonBreakingChanges,
+		"all_diffs":            diffs,
+	}
+}
+
+func formatBreakingChanges(changes []diffing.BreakingChange) []map[string]string {
+	formatted := make([]map[string]string, 0, len(changes))
+	for _, change := range changes {
+		formatted = append(formatted, map[string]string{
+			"path":        change.Path,
+			"type":        change.Type,
+			"description": change.Description,
+		})
+	}
+	return formatted
+}
+
+func describeDiff(diff diffing.Diff) string {
+	switch diff.Type {
+	case diffing.DiffTypeAdded:
+		return "Added in the newer schema"
+	case diffing.DiffTypeRemoved:
+		return "Removed from the newer schema"
+	case diffing.DiffTypeTypeChanged:
+		return "Type changed between schema versions"
+	case diffing.DiffTypeModified:
+		return "Value changed between schema versions"
+	default:
+		return "Schema changed"
+	}
 }

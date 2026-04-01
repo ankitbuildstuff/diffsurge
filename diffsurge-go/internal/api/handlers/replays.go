@@ -188,8 +188,13 @@ func (h *ReplayHandler) Start(w http.ResponseWriter, r *http.Request) {
 	}
 
 	now := time.Now()
-	session.Status = "running"
+	session.Status = "pending"
 	session.StartedAt = &now
+	session.CompletedAt = nil
+	session.TotalRequests = 0
+	session.SuccessfulRequests = 0
+	session.FailedRequests = 0
+	session.MismatchedResponses = 0
 
 	if err := h.store.UpdateReplaySession(r.Context(), session); err != nil {
 		h.log.Error().Err(err).Msg("failed to update replay session status")
@@ -199,7 +204,7 @@ func (h *ReplayHandler) Start(w http.ResponseWriter, r *http.Request) {
 
 	response.JSON(w, http.StatusAccepted, map[string]interface{}{
 		"data":    session,
-		"message": "Replay session started",
+		"message": "Replay session queued",
 	})
 }
 

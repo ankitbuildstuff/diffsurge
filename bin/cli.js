@@ -5,7 +5,7 @@
  *
  * Resolution order:
  *   1. Pre-built binary downloaded during preinstall  (bin/surge-engine)
- *   2. Locally-built Go binary via `go run`           (requires Go 1.24+)
+ *   2. Locally-built Go binary via `go run`           (source checkout only)
  *   3. Helpful error with install instructions
  */
 
@@ -73,30 +73,36 @@ if (fs.existsSync(binaryPath)) {
   }
 }
 
-// 2) Try local Go build
-if (hasGo()) {
-  const goMain = path.resolve(__dirname, "..", "diffsurge-go", "cmd", "cli", "main.go");
-  if (fs.existsSync(goMain)) {
-    try {
-      execFileSync("go", ["run", goMain, ...process.argv.slice(2)], {
-        stdio: "inherit",
-        env: process.env,
-        cwd: path.resolve(__dirname, "..", "diffsurge-go"),
-      });
-      process.exit(0);
-    } catch (err) {
-      if (err.status !== undefined) process.exit(err.status);
-    }
+// 2) Try local Go build from a source checkout
+const goMain = path.resolve(__dirname, "..", "diffsurge-go", "cmd", "cli", "main.go");
+if (hasGo() && fs.existsSync(goMain)) {
+  try {
+    execFileSync("go", ["run", goMain, ...process.argv.slice(2)], {
+      stdio: "inherit",
+      env: process.env,
+      cwd: path.resolve(__dirname, "..", "diffsurge-go"),
+    });
+    process.exit(0);
+  } catch (err) {
+    if (err.status !== undefined) process.exit(err.status);
   }
 }
 
 // 3) Nothing worked
 console.error("╔══════════════════════════════════════════════════════════════╗");
-console.error("║  surge binary not found and Go is not installed.           ║");
+console.error("║  surge binary not found.                                    ║");
 console.error("║                                                            ║");
-console.error("║  Install options:                                          ║");
-console.error("║    npm install -g diffsurge          (recommended)         ║");
-console.error("║    curl -sSL https://get.diffsurge.com/install.sh | sh    ║");
+console.error("║  The npm install step should have downloaded a prebuilt    ║");
+console.error("║  engine for this platform.                                  ║");
+console.error("║                                                            ║");
+console.error("║  Fix options:                                              ║");
+console.error("║    npm rebuild diffsurge                                   ║");
+console.error("║    npm install -g diffsurge                                ║");
 console.error("║    docker run diffsurge/cli surge --help                   ║");
+if (hasGo()) {
+  console.error("║                                                            ║");
+  console.error("║  Go was detected, but source files were not found next to  ║");
+  console.error("║  this package, so `go run` fallback is unavailable here.   ║");
+}
 console.error("╚══════════════════════════════════════════════════════════════╝");
 process.exit(1);
