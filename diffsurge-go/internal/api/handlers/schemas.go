@@ -110,11 +110,19 @@ func (h *SchemaHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.store.SaveSchemaVersion(r.Context(), schema); err != nil {
-		if strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "unique") {
-			response.Conflict(w, "Schema version already exists for this project")
+		errMsg := err.Error()
+		if strings.Contains(errMsg, "duplicate") || strings.Contains(errMsg, "unique") ||
+			strings.Contains(errMsg, "UNIQUE") || strings.Contains(errMsg, "23505") ||
+			strings.Contains(errMsg, "violates unique constraint") {
+			response.Conflict(w, "Schema version '"+req.Version+"' already exists for this project")
 			return
 		}
-		h.log.Error().Err(err).Msg("failed to save schema version")
+		h.log.Error().Err(err).
+			Str("project_id", projectID.String()).
+			Str("version", req.Version).
+			Str("schema_type", req.SchemaType).
+			Str("created_by", schema.CreatedBy.String()).
+			Msg("failed to save schema version")
 		response.InternalError(w)
 		return
 	}

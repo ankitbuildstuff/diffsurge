@@ -72,12 +72,30 @@ Compare two OpenAPI/Swagger schema files and detect breaking changes:
 surge schema diff --old api-v1.yaml --new api-v2.yaml --fail-on-breaking
 ```
 
+### `surge schema push`
+
+Upload an API schema to the Diffsurge dashboard:
+
+```bash
+# Upload an OpenAPI schema
+surge schema push --file openapi.yaml --version v2.0.0
+
+# With git metadata
+surge schema push --file openapi.yaml --version v2.1.0 --git-commit abc1234 --git-branch main
+```
+
+Supports both YAML and JSON files. Requires `SURGE_API_KEY` and `SURGE_PROJECT_ID`.
+
 ### `surge replay`
 
 Replay captured traffic against a target server:
 
 ```bash
+# Local replay only
 surge replay --source captured.json --target http://localhost:8080
+
+# Replay and upload results to the dashboard
+surge replay --source captured.json --target http://localhost:8080 --upload
 ```
 
 ## CI/CD Integration

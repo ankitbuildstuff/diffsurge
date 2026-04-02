@@ -45,6 +45,7 @@ func NewRouter(deps ServerDeps) http.Handler {
 
 	// Traffic
 	mux.HandleFunc("GET /api/v1/projects/{id}/traffic", traffic.List)
+	mux.HandleFunc("POST /api/v1/projects/{id}/traffic", traffic.Create)
 	mux.HandleFunc("GET /api/v1/projects/{id}/traffic/stats", traffic.Stats)
 	mux.HandleFunc("GET /api/v1/projects/{id}/traffic/{logId}", traffic.Get)
 

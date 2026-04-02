@@ -1,11 +1,17 @@
 package cli
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/diffsurge-org/diffsurge/internal/diffing"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -15,6 +21,11 @@ var (
 	schemaOutput         string
 	schemaBreakingOnly   bool
 	schemaFailOnBreaking bool
+	schemaPushFile       string
+	schemaPushVersion    string
+	schemaPushType       string
+	schemaPushGitCommit  string
+	schemaPushGitBranch  string
 )
 
 var schemaCmd = &cobra.Command{
@@ -42,6 +53,20 @@ Exit codes:
 	RunE: runSchemaDiff,
 }
 
+var schemaPushCmd = &cobra.Command{
+	Use:   "push",
+	Short: "Upload a schema file to the dashboard",
+	Long: `Upload an OpenAPI or GraphQL schema file to the Diffsurge dashboard.
+
+Supports JSON and YAML files. YAML files are automatically converted to JSON before upload.
+
+Examples:
+  surge schema push --file openapi.yaml --version v2.0.0
+  surge schema push --file schema.json --version v1.0.0 --type openapi
+  surge schema push --file openapi.yaml --version v2.1.0 --git-commit abc1234 --git-branch main`,
+	RunE: runSchemaPush,
+}
+
 func init() {
 	schemaDiffCmd.Flags().StringVar(&schemaFileOld, "old", "", "Path to the old schema file (required)")
 	schemaDiffCmd.Flags().StringVar(&schemaFileNew, "new", "", "Path to the new schema file (required)")
@@ -53,7 +78,17 @@ func init() {
 	_ = schemaDiffCmd.MarkFlagRequired("old")
 	_ = schemaDiffCmd.MarkFlagRequired("new")
 
+	schemaPushCmd.Flags().StringVar(&schemaPushFile, "file", "", "Path to the schema file (required)")
+	schemaPushCmd.Flags().StringVar(&schemaPushVersion, "version", "", "Schema version label, e.g. v2.0.0 (required)")
+	schemaPushCmd.Flags().StringVar(&schemaPushType, "type", "openapi", "Schema type: openapi, graphql")
+	schemaPushCmd.Flags().StringVar(&schemaPushGitCommit, "git-commit", "", "Git commit SHA (optional)")
+	schemaPushCmd.Flags().StringVar(&schemaPushGitBranch, "git-branch", "", "Git branch name (optional)")
+
+	_ = schemaPushCmd.MarkFlagRequired("file")
+	_ = schemaPushCmd.MarkFlagRequired("version")
+
 	schemaCmd.AddCommand(schemaDiffCmd)
+	schemaCmd.AddCommand(schemaPushCmd)
 }
 
 func runSchemaDiff(cmd *cobra.Command, args []string) error {
@@ -107,4 +142,110 @@ func runSchemaDiff(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func runSchemaPush(cmd *cobra.Command, args []string) error {
+	if cliCfg == nil || cliCfg.APIKey == "" {
+		return fmt.Errorf("API key not configured.\n\nSet SURGE_API_KEY in your .env file or environment:\n  echo 'SURGE_API_KEY=diffsurge_live_...' >> .env")
+	}
+	if cliCfg.ProjectID == "" {
+		return fmt.Errorf("project ID not configured.\n\nSet SURGE_PROJECT_ID or use --project-id flag")
+	}
+
+	// Read the schema file
+	data, err := os.ReadFile(schemaPushFile)
+	if err != nil {
+		return fmt.Errorf("reading schema file: %w", err)
+	}
+
+	// Parse the schema content — convert YAML to JSON-compatible structure if needed
+	var schemaContent interface{}
+	ext := strings.ToLower(filepath.Ext(schemaPushFile))
+	switch ext {
+	case ".yaml", ".yml":
+		if err := yaml.Unmarshal(data, &schemaContent); err != nil {
+			return fmt.Errorf("parsing YAML schema: %w", err)
+		}
+		// Convert yaml.Node map keys from interface{} to string for JSON compat
+		schemaContent = yamlToJSONCompat(schemaContent)
+	case ".json":
+		if err := json.Unmarshal(data, &schemaContent); err != nil {
+			return fmt.Errorf("parsing JSON schema: %w", err)
+		}
+	default:
+		// Try JSON first, fall back to YAML
+		if err := json.Unmarshal(data, &schemaContent); err != nil {
+			if err2 := yaml.Unmarshal(data, &schemaContent); err2 != nil {
+				return fmt.Errorf("could not parse schema file as JSON or YAML")
+			}
+			schemaContent = yamlToJSONCompat(schemaContent)
+		}
+	}
+
+	payload := map[string]interface{}{
+		"version":        schemaPushVersion,
+		"schema_type":    schemaPushType,
+		"schema_content": schemaContent,
+	}
+	if schemaPushGitCommit != "" {
+		payload["git_commit"] = schemaPushGitCommit
+	}
+	if schemaPushGitBranch != "" {
+		payload["git_branch"] = schemaPushGitBranch
+	}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("marshaling payload: %w", err)
+	}
+
+	client := NewAPIClient(cliCfg.APIURL, cliCfg.APIKey)
+	path := fmt.Sprintf("/api/v1/projects/%s/schemas", cliCfg.ProjectID)
+
+	fmt.Fprintf(cmd.OutOrStdout(), "→ Uploading schema %s (%s) from %s...\n", schemaPushVersion, schemaPushType, schemaPushFile)
+
+	resp, err := client.Post(path, bytes.NewReader(body))
+	if err != nil {
+		return fmt.Errorf("upload failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		ID string `json:"id"`
+	}
+	respBody, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &result)
+
+	fmt.Fprintf(cmd.OutOrStdout(), "✓ Schema %s uploaded successfully\n", schemaPushVersion)
+	if result.ID != "" {
+		fmt.Fprintf(cmd.OutOrStdout(), "  Schema ID: %s\n", result.ID)
+	}
+
+	return nil
+}
+
+// yamlToJSONCompat recursively converts YAML-parsed structures to JSON-compatible types.
+// YAML unmarshaling in Go can produce map[interface{}]interface{} which json.Marshal cannot handle.
+func yamlToJSONCompat(v interface{}) interface{} {
+	switch val := v.(type) {
+	case map[interface{}]interface{}:
+		m := make(map[string]interface{}, len(val))
+		for k, v := range val {
+			m[fmt.Sprintf("%v", k)] = yamlToJSONCompat(v)
+		}
+		return m
+	case map[string]interface{}:
+		m := make(map[string]interface{}, len(val))
+		for k, v := range val {
+			m[k] = yamlToJSONCompat(v)
+		}
+		return m
+	case []interface{}:
+		for i, v := range val {
+			val[i] = yamlToJSONCompat(v)
+		}
+		return val
+	default:
+		return v
+	}
 }

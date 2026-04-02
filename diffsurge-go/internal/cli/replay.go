@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -24,6 +25,7 @@ var (
 	replayFormat     string
 	replayOutput     string
 	replayMaxRetries int
+	replayUpload     bool
 )
 
 var replayCmd = &cobra.Command{
@@ -48,6 +50,7 @@ func init() {
 	replayCmd.Flags().StringVar(&replayFormat, "format", "text", "Output format: text, json")
 	replayCmd.Flags().StringVar(&replayOutput, "output", "", "Write report to file")
 	replayCmd.Flags().IntVar(&replayMaxRetries, "max-retries", 2, "Max retries per request")
+	replayCmd.Flags().BoolVar(&replayUpload, "upload", false, "Upload replay results to the dashboard")
 
 	_ = replayCmd.MarkFlagRequired("target")
 	_ = replayCmd.MarkFlagRequired("source")
@@ -131,6 +134,15 @@ func runReplay(cmd *cobra.Command, args []string) error {
 		fmt.Fprint(cmd.OutOrStdout(), output)
 	}
 
+	// Upload results to dashboard if requested
+	if replayUpload {
+		if err := uploadReplayResults(cmd, summary); err != nil {
+			fmt.Fprintf(cmd.OutOrStderr(), "\n⚠ Failed to upload replay results: %v\n", err)
+		} else {
+			fmt.Fprintf(cmd.OutOrStdout(), "\n✓ Replay results uploaded to dashboard\n")
+		}
+	}
+
 	if summary.Mismatched > 0 || summary.Failed > 0 {
 		os.Exit(1)
 	}
@@ -169,6 +181,46 @@ func loadTrafficFromFile(path string) ([]models.TrafficLog, error) {
 	}
 
 	return nil, fmt.Errorf("could not parse traffic from file (expected JSON array or {\"traffic\": [...]})")
+}
+
+func uploadReplayResults(cmd *cobra.Command, summary replayer.ReportSummary) error {
+	if cliCfg == nil || cliCfg.APIKey == "" {
+		return fmt.Errorf("API key not configured (set SURGE_API_KEY)")
+	}
+	if cliCfg.ProjectID == "" {
+		return fmt.Errorf("project ID not configured (set SURGE_PROJECT_ID or use --project-id)")
+	}
+
+	client := NewAPIClient(cliCfg.APIURL, cliCfg.APIKey)
+
+	now := time.Now()
+	payload := map[string]interface{}{
+		"name":                  summary.SessionName,
+		"source_environment_id": uuid.Nil,
+		"target_environment_id": uuid.Nil,
+		"description":           fmt.Sprintf("CLI replay against %s", summary.TargetURL),
+		"status":                "completed",
+		"total_requests":        summary.TotalRequests,
+		"successful_requests":   summary.Successful,
+		"failed_requests":       summary.Failed,
+		"mismatched_responses":  summary.Mismatched,
+		"started_at":            now.Add(-summary.Duration),
+		"completed_at":          now,
+	}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("marshaling payload: %w", err)
+	}
+
+	path := fmt.Sprintf("/api/v1/projects/%s/replays", cliCfg.ProjectID)
+	resp, err := client.Post(path, bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	resp.Body.Close()
+
+	return nil
 }
 
 func pingTarget(targetURL string) error {

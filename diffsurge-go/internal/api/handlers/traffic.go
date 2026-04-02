@@ -10,6 +10,7 @@ import (
 	"github.com/diffsurge-org/diffsurge/internal/models"
 	"github.com/diffsurge-org/diffsurge/internal/storage"
 	"github.com/diffsurge-org/diffsurge/pkg/logger"
+	"github.com/google/uuid"
 )
 
 type TrafficHandler struct {
@@ -74,6 +75,87 @@ func (h *TrafficHandler) List(w http.ResponseWriter, r *http.Request) {
 		NextCursor: nextCursor,
 		HasMore:    hasMore,
 	})
+}
+
+type createTrafficRequest struct {
+	Method          string                 `json:"method"`
+	Path            string                 `json:"path"`
+	StatusCode      int                    `json:"status_code"`
+	LatencyMs       int                    `json:"latency_ms"`
+	QueryParams     map[string]interface{} `json:"query_params,omitempty"`
+	RequestHeaders  map[string]interface{} `json:"request_headers,omitempty"`
+	RequestBody     map[string]interface{} `json:"request_body,omitempty"`
+	ResponseHeaders map[string]interface{} `json:"response_headers,omitempty"`
+	ResponseBody    map[string]interface{} `json:"response_body,omitempty"`
+	IPAddress       string                 `json:"ip_address,omitempty"`
+	UserAgent       string                 `json:"user_agent,omitempty"`
+	Timestamp       *time.Time             `json:"timestamp,omitempty"`
+	EnvironmentID   *uuid.UUID             `json:"environment_id,omitempty"`
+}
+
+func (h *TrafficHandler) Create(w http.ResponseWriter, r *http.Request) {
+	projectID, err := request.PathUUID(r, "id")
+	if err != nil {
+		response.BadRequest(w, err.Error())
+		return
+	}
+
+	var req createTrafficRequest
+	if err := request.ParseJSON(r, 0, &req); err != nil {
+		response.BadRequest(w, err.Error())
+		return
+	}
+
+	var errs []response.FieldError
+	if req.Method == "" {
+		errs = append(errs, response.FieldError{Field: "method", Message: "Method is required"})
+	}
+	if req.Path == "" {
+		errs = append(errs, response.FieldError{Field: "path", Message: "Path is required"})
+	}
+	if req.StatusCode == 0 {
+		errs = append(errs, response.FieldError{Field: "status_code", Message: "Status code is required"})
+	}
+	if len(errs) > 0 {
+		response.ValidationError(w, errs)
+		return
+	}
+
+	ts := time.Now()
+	if req.Timestamp != nil {
+		ts = *req.Timestamp
+	}
+
+	envID := uuid.Nil
+	if req.EnvironmentID != nil {
+		envID = *req.EnvironmentID
+	}
+
+	log := &models.TrafficLog{
+		ID:              uuid.New(),
+		ProjectID:       projectID,
+		EnvironmentID:   envID,
+		Method:          req.Method,
+		Path:            req.Path,
+		QueryParams:     req.QueryParams,
+		RequestHeaders:  req.RequestHeaders,
+		RequestBody:     req.RequestBody,
+		StatusCode:      req.StatusCode,
+		ResponseHeaders: req.ResponseHeaders,
+		ResponseBody:    req.ResponseBody,
+		Timestamp:       ts,
+		LatencyMs:       req.LatencyMs,
+		IPAddress:       req.IPAddress,
+		UserAgent:       req.UserAgent,
+	}
+
+	if err := h.store.SaveTrafficLog(log); err != nil {
+		h.log.Error().Err(err).Str("project_id", projectID.String()).Msg("failed to save traffic log")
+		response.InternalError(w)
+		return
+	}
+
+	response.Created(w, log)
 }
 
 func (h *TrafficHandler) Get(w http.ResponseWriter, r *http.Request) {
