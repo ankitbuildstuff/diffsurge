@@ -28,6 +28,7 @@ const (
 	UserEmailKey contextKey = "user_email"
 	UserRoleKey  contextKey = "user_role"
 	ProjectIDKey contextKey = "project_id"
+	IsAPIKeyKey  contextKey = "is_api_key"
 )
 
 type AuthConfig struct {
@@ -144,6 +145,7 @@ func (a *Auth) validateAPIKey(r *http.Request, fullKey string) error {
 	// Set org context from API key
 	ctx := context.WithValue(r.Context(), UserIDKey, apiKey.OrganizationID)
 	ctx = context.WithValue(ctx, UserRoleKey, "api_key")
+	ctx = context.WithValue(ctx, IsAPIKeyKey, true)
 	if apiKey.ProjectID != nil {
 		ctx = context.WithValue(ctx, ProjectIDKey, *apiKey.ProjectID)
 	}
@@ -374,6 +376,13 @@ func GetUserRole(ctx context.Context) string {
 		return role
 	}
 	return ""
+}
+
+func IsAPIKey(ctx context.Context) bool {
+	if isAPI, ok := ctx.Value(IsAPIKeyKey).(bool); ok {
+		return isAPI
+	}
+	return false
 }
 
 // AuthExempt wraps auth middleware but exempts specific paths from authentication.

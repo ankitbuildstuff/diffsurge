@@ -97,6 +97,11 @@ func (h *SchemaHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var createdBy uuid.UUID
+	if !middleware.IsAPIKey(r.Context()) {
+		createdBy = middleware.GetUserID(r.Context())
+	}
+
 	schema := &models.SchemaVersion{
 		ID:            uuid.New(),
 		ProjectID:     projectID,
@@ -105,7 +110,7 @@ func (h *SchemaHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		SchemaContent: req.SchemaContent,
 		GitCommit:     req.GitCommit,
 		GitBranch:     req.GitBranch,
-		CreatedBy:     middleware.GetUserID(r.Context()),
+		CreatedBy:     createdBy,
 		CreatedAt:     time.Now(),
 	}
 

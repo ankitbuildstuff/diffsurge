@@ -28,8 +28,17 @@ type createReplayRequest struct {
 	Description         string                 `json:"description,omitempty"`
 	SourceEnvironmentID string                 `json:"source_environment_id"`
 	TargetEnvironmentID string                 `json:"target_environment_id"`
-	SampleSize          int                    `json:"sample_size"`
+	SampleSize          int                    `json:"sample_size,omitempty"`
 	TrafficFilter       map[string]interface{} `json:"traffic_filter,omitempty"`
+
+	// Summary fields for CLI/uploaded replays
+	Status              string     `json:"status,omitempty"`
+	TotalRequests       int        `json:"total_requests,omitempty"`
+	SuccessfulRequests  int        `json:"successful_requests,omitempty"`
+	FailedRequests      int        `json:"failed_requests,omitempty"`
+	MismatchedResponses int        `json:"mismatched_responses,omitempty"`
+	StartedAt           *time.Time `json:"started_at,omitempty"`
+	CompletedAt         *time.Time `json:"completed_at,omitempty"`
 }
 
 func (h *ReplayHandler) List(w http.ResponseWriter, r *http.Request) {
@@ -89,7 +98,7 @@ func (h *ReplayHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if req.TargetEnvironmentID == "" {
 		errs = append(errs, response.FieldError{Field: "target_environment_id", Message: "Target environment is required"})
 	}
-	if req.SampleSize < 1 || req.SampleSize > 10000 {
+	if req.Status == "" && (req.SampleSize < 1 || req.SampleSize > 10000) {
 		errs = append(errs, response.FieldError{Field: "sample_size", Message: "Sample size must be between 1 and 10000"})
 	}
 	if len(errs) > 0 {
@@ -98,23 +107,80 @@ func (h *ReplayHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sourceEnvID, err := uuid.Parse(req.SourceEnvironmentID)
-	if err != nil {
+	if err != nil && req.SourceEnvironmentID != "" {
 		response.BadRequest(w, "invalid source_environment_id format")
 		return
 	}
 	targetEnvID, err := uuid.Parse(req.TargetEnvironmentID)
-	if err != nil {
+	if err != nil && req.TargetEnvironmentID != "" {
 		response.BadRequest(w, "invalid target_environment_id format")
 		return
 	}
 
-	if _, err := h.store.GetEnvironment(r.Context(), sourceEnvID); err != nil {
-		response.NotFound(w, "Source environment")
-		return
+	// Resolve environment IDs if they are nil (common for CLI uploads)
+	if sourceEnvID == uuid.Nil || targetEnvID == uuid.Nil {
+		envs, err := h.store.ListEnvironments(r.Context(), projectID)
+		if err == nil && len(envs) > 0 {
+			if sourceEnvID == uuid.Nil {
+				sourceEnvID = envs[0].ID
+				for _, e := range envs {
+					if e.IsSource {
+						sourceEnvID = e.ID
+						break
+					}
+				}
+			}
+			if targetEnvID == uuid.Nil {
+				targetEnvID = envs[0].ID
+				for _, e := range envs {
+					if !e.IsSource {
+						targetEnvID = e.ID
+						break
+					}
+				}
+			}
+		} else if err == nil {
+			// Create a default environment if none exists
+			defaultEnv := &models.Environment{
+				ID:        uuid.New(),
+				ProjectID: projectID,
+				Name:      "Default",
+				BaseURL:   "http://localhost",
+				IsSource:  true,
+				CreatedAt: time.Now(),
+			}
+			if err := h.store.CreateEnvironment(r.Context(), defaultEnv); err == nil {
+				if sourceEnvID == uuid.Nil {
+					sourceEnvID = defaultEnv.ID
+				}
+				if targetEnvID == uuid.Nil {
+					targetEnvID = defaultEnv.ID
+				}
+			}
+		}
 	}
-	if _, err := h.store.GetEnvironment(r.Context(), targetEnvID); err != nil {
-		response.NotFound(w, "Target environment")
-		return
+
+	if sourceEnvID != uuid.Nil {
+		if _, err := h.store.GetEnvironment(r.Context(), sourceEnvID); err != nil {
+			response.NotFound(w, "Source environment")
+			return
+		}
+	}
+	if targetEnvID != uuid.Nil {
+		if _, err := h.store.GetEnvironment(r.Context(), targetEnvID); err != nil {
+			response.NotFound(w, "Target environment")
+			return
+		}
+	}
+
+	status := "pending"
+	if req.Status != "" {
+		status = req.Status
+	}
+
+	var createdBy uuid.UUID
+	if !middleware.IsAPIKey(r.Context()) {
+		createdBy = middleware.GetUserID(r.Context())
 	}
 
 	desc := req.Description
@@ -127,8 +193,14 @@ func (h *ReplayHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Description:         &desc,
 		TrafficFilter:       req.TrafficFilter,
 		SampleSize:          req.SampleSize,
-		Status:              "pending",
-		CreatedBy:           middleware.GetUserID(r.Context()),
+		Status:              status,
+		TotalRequests:       req.TotalRequests,
+		SuccessfulRequests:  req.SuccessfulRequests,
+		FailedRequests:      req.FailedRequests,
+		MismatchedResponses: req.MismatchedResponses,
+		StartedAt:           req.StartedAt,
+		CompletedAt:         req.CompletedAt,
+		CreatedBy:           createdBy,
 		CreatedAt:           time.Now(),
 	}
 

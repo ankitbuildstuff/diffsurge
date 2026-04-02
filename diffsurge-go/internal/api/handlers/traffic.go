@@ -127,8 +127,34 @@ func (h *TrafficHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	envID := uuid.Nil
-	if req.EnvironmentID != nil {
+	if req.EnvironmentID != nil && *req.EnvironmentID != uuid.Nil {
 		envID = *req.EnvironmentID
+	} else {
+		// Fetch existing environments for the project
+		envs, err := h.store.ListEnvironments(r.Context(), projectID)
+		if err == nil && len(envs) > 0 {
+			// Find the source environment if possible, otherwise use the first one
+			envID = envs[0].ID
+			for _, e := range envs {
+				if e.IsSource {
+					envID = e.ID
+					break
+				}
+			}
+		} else {
+			// Create a default environment if none exists
+			defaultEnv := &models.Environment{
+				ID:        uuid.New(),
+				ProjectID: projectID,
+				Name:      "Default",
+				BaseURL:   "http://localhost",
+				IsSource:  true,
+				CreatedAt: time.Now(),
+			}
+			if err := h.store.CreateEnvironment(r.Context(), defaultEnv); err == nil {
+				envID = defaultEnv.ID
+			}
+		}
 	}
 
 	log := &models.TrafficLog{

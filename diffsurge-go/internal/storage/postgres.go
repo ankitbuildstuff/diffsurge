@@ -745,13 +745,18 @@ func (s *PostgresStore) GetReplaySession(ctx context.Context, id uuid.UUID) (*mo
 
 func (s *PostgresStore) CreateReplaySession(ctx context.Context, session *models.ReplaySession) error {
 	filterJSON, _ := json.Marshal(session.TrafficFilter)
+	var createdBy interface{} = session.CreatedBy
+	if session.CreatedBy == uuid.Nil {
+		createdBy = nil
+	}
+
 	_, err := s.db.ExecContext(ctx,
 		`INSERT INTO replay_sessions (id, project_id, source_environment_id, target_environment_id,
 		name, description, traffic_filter, start_time, end_time, sample_size, status, created_by)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
 		session.ID, session.ProjectID, session.SourceEnvironmentID, session.TargetEnvironmentID,
 		session.Name, session.Description, filterJSON, session.StartTime, session.EndTime,
-		session.SampleSize, session.Status, session.CreatedBy)
+		session.SampleSize, session.Status, createdBy)
 	if err != nil {
 		return fmt.Errorf("creating replay session: %w", err)
 	}
@@ -877,10 +882,15 @@ func (s *PostgresStore) ListSchemaVersions(ctx context.Context, projectID uuid.U
 
 func (s *PostgresStore) SaveSchemaVersion(ctx context.Context, schema *models.SchemaVersion) error {
 	content, _ := json.Marshal(schema.SchemaContent)
+	var createdBy interface{} = schema.CreatedBy
+	if schema.CreatedBy == uuid.Nil {
+		createdBy = nil
+	}
+
 	_, err := s.db.ExecContext(ctx,
 		`INSERT INTO schema_versions (id, project_id, version, schema_type, schema_content, git_commit, git_branch, created_by)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-		schema.ID, schema.ProjectID, schema.Version, schema.SchemaType, content, schema.GitCommit, schema.GitBranch, schema.CreatedBy)
+		schema.ID, schema.ProjectID, schema.Version, schema.SchemaType, content, schema.GitCommit, schema.GitBranch, createdBy)
 	if err != nil {
 		return fmt.Errorf("saving schema version: %w", err)
 	}
