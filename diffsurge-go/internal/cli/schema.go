@@ -214,7 +214,7 @@ func runSchemaPush(cmd *cobra.Command, args []string) error {
 		ID string `json:"id"`
 	}
 	respBody, _ := io.ReadAll(resp.Body)
-	json.Unmarshal(respBody, &result)
+	_ = json.Unmarshal(respBody, &result)
 
 	fmt.Fprintf(cmd.OutOrStdout(), "✓ Schema %s uploaded successfully\n", schemaPushVersion)
 	if result.ID != "" {
