@@ -324,12 +324,9 @@ function ApiKeysPageContent() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
                         <code className="text-sm font-mono text-zinc-600">
                           {maskKey(key.key_prefix)}
                         </code>
-                        <CopyButton value={key.key_prefix} />
-                      </div>
                     </TableCell>
                     <TableCell className="text-zinc-500">
                       {new Date(key.created_at).toLocaleDateString()}

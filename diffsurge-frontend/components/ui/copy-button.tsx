@@ -12,7 +12,10 @@ interface CopyButtonProps {
 export function CopyButton({ value, className }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = async () => {
+  const handleCopy = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
     try {
       await navigator.clipboard.writeText(value);
       setCopied(true);
@@ -24,6 +27,7 @@ export function CopyButton({ value, className }: CopyButtonProps) {
 
   return (
     <button
+      type="button"
       onClick={handleCopy}
       className={cn(
         "inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900",

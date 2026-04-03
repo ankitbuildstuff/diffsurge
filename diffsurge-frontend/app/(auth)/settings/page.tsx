@@ -90,9 +90,12 @@ export default function SettingsPage() {
               <p className="text-sm font-semibold text-zinc-900">
                 {activeOrg.name}
               </p>
-              <p className="text-xs text-zinc-400">
-                Org ID: {activeOrg.id}
-              </p>
+              <div className="mt-1 flex items-center gap-1.5">
+                <code className="text-[11px] font-mono text-zinc-400">
+                  {activeOrg.id}
+                </code>
+                <CopyButton value={activeOrg.id} />
+              </div>
             </div>
           </div>
         </div>
@@ -184,29 +187,33 @@ export default function SettingsPage() {
                   key={project.id}
                   className="flex items-center justify-between rounded-lg border border-zinc-100 px-4 py-3 transition-colors hover:bg-zinc-50"
                 >
-                  <button
-                    onClick={() => {
-                      setActiveProject(project);
-                      router.push("/dashboard");
-                    }}
-                    className="flex-1 text-left"
-                  >
-                    <p className="text-sm font-medium text-zinc-900">
-                      {project.name}
-                    </p>
+                  <div className="min-w-0 flex-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveProject(project);
+                        router.push("/dashboard");
+                      }}
+                      className="block w-full text-left"
+                    >
+                      <p className="text-sm font-medium text-zinc-900">
+                        {project.name}
+                      </p>
+                      {project.description && (
+                        <p className="mt-0.5 text-xs text-zinc-400">
+                          {project.description}
+                        </p>
+                      )}
+                    </button>
                     <div className="mt-1 flex items-center gap-1.5">
                       <code className="text-[11px] font-mono text-zinc-400">
                         {project.id}
                       </code>
                       <CopyButton value={project.id} />
                     </div>
-                    {project.description && (
-                      <p className="mt-0.5 text-xs text-zinc-400">
-                        {project.description}
-                      </p>
-                    )}
-                  </button>
+                  </div>
                   <button
+                    type="button"
                     onClick={() => deleteMutation.mutate(project.id)}
                     disabled={deleteMutation.isPending}
                     className="rounded-md p-1.5 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-500"

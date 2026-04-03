@@ -101,7 +101,7 @@ func (r *Reporter) FormatText(summary ReportSummary) string {
 	var buf bytes.Buffer
 
 	buf.WriteString("╔══════════════════════════════════════════════════╗\n")
-	buf.WriteString("║            Diffsurge Replay Report                    ║\n")
+	buf.WriteString("║            Diffsurge Replay Report               ║\n")
 	buf.WriteString("╚══════════════════════════════════════════════════╝\n\n")
 
 	buf.WriteString(fmt.Sprintf("  Session:    %s\n", summary.SessionName))
