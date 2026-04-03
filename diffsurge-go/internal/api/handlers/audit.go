@@ -107,5 +107,11 @@ func (h *AuditLogHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.JSON(w, http.StatusOK, logs)
+	if logs == nil {
+		logs = []models.AuditLog{}
+	}
+
+	response.JSON(w, http.StatusOK, map[string]interface{}{
+		"data": logs,
+	})
 }

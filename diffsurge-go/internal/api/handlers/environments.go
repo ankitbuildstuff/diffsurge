@@ -59,7 +59,8 @@ func (h *EnvironmentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := h.store.GetProject(r.Context(), projectID); err != nil {
+	project, err := h.store.GetProject(r.Context(), projectID)
+	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			response.NotFound(w, "Project")
 			return
@@ -107,6 +108,13 @@ func (h *EnvironmentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		response.InternalError(w)
 		return
 	}
+
+	writeAuditLog(r, h.store, h.log, project.OrganizationID, models.AuditActionCreate, "environment", &env.ID, map[string]interface{}{
+		"project_id": projectID.String(),
+		"name":       env.Name,
+		"base_url":   env.BaseURL,
+		"is_source":  env.IsSource,
+	})
 
 	response.Created(w, env)
 }
@@ -209,6 +217,16 @@ func (h *EnvironmentHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	project, err := h.store.GetProject(r.Context(), projectID)
+	if err == nil {
+		writeAuditLog(r, h.store, h.log, project.OrganizationID, models.AuditActionUpdate, "environment", &env.ID, map[string]interface{}{
+			"project_id": projectID.String(),
+			"name":       env.Name,
+			"base_url":   env.BaseURL,
+			"is_source":  env.IsSource,
+		})
+	}
+
 	response.JSON(w, http.StatusOK, map[string]interface{}{
 		"data": env,
 	})
@@ -248,6 +266,16 @@ func (h *EnvironmentHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		h.log.Error().Err(err).Msg("failed to delete environment")
 		response.InternalError(w)
 		return
+	}
+
+	project, err := h.store.GetProject(r.Context(), projectID)
+	if err == nil {
+		writeAuditLog(r, h.store, h.log, project.OrganizationID, models.AuditActionDelete, "environment", &envID, map[string]interface{}{
+			"project_id": projectID.String(),
+			"name":       env.Name,
+			"base_url":   env.BaseURL,
+			"is_source":  env.IsSource,
+		})
 	}
 
 	response.NoContent(w)

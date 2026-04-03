@@ -109,6 +109,15 @@ func (h *APIKeyHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	details := map[string]interface{}{
+		"name":       apiKey.Name,
+		"key_prefix": apiKey.KeyPrefix,
+	}
+	if apiKey.ProjectID != nil {
+		details["project_id"] = apiKey.ProjectID.String()
+	}
+	writeAuditLog(r, h.store, h.log, orgID, models.AuditActionCreate, "api_key", &apiKey.ID, details)
+
 	// Return the full key only once (never stored or shown again)
 	response.Created(w, apiKeyResponse{
 		Key:    fullKey,
@@ -174,6 +183,15 @@ func (h *APIKeyHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		response.InternalError(w)
 		return
 	}
+
+	details := map[string]interface{}{
+		"name":       key.Name,
+		"key_prefix": key.KeyPrefix,
+	}
+	if key.ProjectID != nil {
+		details["project_id"] = key.ProjectID.String()
+	}
+	writeAuditLog(r, h.store, h.log, orgID, models.AuditActionDelete, "api_key", &keyID, details)
 
 	response.NoContent(w)
 }

@@ -77,6 +77,11 @@ func (h *OrganizationHandler) Create(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	writeAuditLog(r, h.store, h.log, org.ID, models.AuditActionCreate, "organization", &org.ID, map[string]interface{}{
+		"name": org.Name,
+		"slug": org.Slug,
+	})
+
 	response.Created(w, org)
 }
 
@@ -185,6 +190,11 @@ func (h *OrganizationHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	writeAuditLog(r, h.store, h.log, org.ID, models.AuditActionUpdate, "organization", &org.ID, map[string]interface{}{
+		"name": org.Name,
+		"slug": org.Slug,
+	})
+
 	response.JSON(w, http.StatusOK, map[string]interface{}{
 		"data": org,
 	})
@@ -197,6 +207,17 @@ func (h *OrganizationHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	org, err := h.store.GetOrganization(r.Context(), id)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			response.NotFound(w, "Organization")
+			return
+		}
+		h.log.Error().Err(err).Msg("failed to get organization")
+		response.InternalError(w)
+		return
+	}
+
 	if err := h.store.DeleteOrganization(r.Context(), id); err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			response.NotFound(w, "Organization")
@@ -206,6 +227,11 @@ func (h *OrganizationHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		response.InternalError(w)
 		return
 	}
+
+	writeAuditLog(r, h.store, h.log, id, models.AuditActionDelete, "organization", &id, map[string]interface{}{
+		"name": org.Name,
+		"slug": org.Slug,
+	})
 
 	response.NoContent(w)
 }
@@ -286,6 +312,10 @@ func (h *OrganizationHandler) AddMember(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	writeAuditLog(r, h.store, h.log, orgID, models.AuditActionInvite, "member", &userID, map[string]interface{}{
+		"role": req.Role,
+	})
+
 	response.Created(w, map[string]interface{}{
 		"message": "Member added successfully",
 	})
@@ -313,6 +343,8 @@ func (h *OrganizationHandler) RemoveMember(w http.ResponseWriter, r *http.Reques
 		response.InternalError(w)
 		return
 	}
+
+	writeAuditLog(r, h.store, h.log, orgID, models.AuditActionRemove, "member", &userID, nil)
 
 	response.NoContent(w)
 }

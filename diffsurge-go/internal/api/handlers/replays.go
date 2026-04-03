@@ -82,6 +82,17 @@ func (h *ReplayHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	project, err := h.store.GetProject(r.Context(), projectID)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			response.NotFound(w, "Project")
+			return
+		}
+		h.log.Error().Err(err).Msg("failed to verify project for replay")
+		response.InternalError(w)
+		return
+	}
+
 	var req createReplayRequest
 	if err := request.ParseJSON(r, 0, &req); err != nil {
 		response.BadRequest(w, err.Error())
@@ -210,6 +221,17 @@ func (h *ReplayHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	writeAuditLog(r, h.store, h.log, project.OrganizationID, models.AuditActionCreate, "replay", &session.ID, map[string]interface{}{
+		"project_id":            projectID.String(),
+		"name":                  session.Name,
+		"status":                session.Status,
+		"sample_size":           session.SampleSize,
+		"total_requests":        session.TotalRequests,
+		"mismatched_responses":  session.MismatchedResponses,
+		"source_environment_id": session.SourceEnvironmentID.String(),
+		"target_environment_id": session.TargetEnvironmentID.String(),
+	})
+
 	response.Created(w, session)
 }
 
@@ -274,6 +296,15 @@ func (h *ReplayHandler) Start(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	project, err := h.store.GetProject(r.Context(), session.ProjectID)
+	if err == nil {
+		writeAuditLog(r, h.store, h.log, project.OrganizationID, models.AuditActionUpdate, "replay", &session.ID, map[string]interface{}{
+			"project_id": session.ProjectID.String(),
+			"name":       session.Name,
+			"status":     session.Status,
+		})
+	}
+
 	response.JSON(w, http.StatusAccepted, map[string]interface{}{
 		"data":    session,
 		"message": "Replay session queued",
@@ -311,6 +342,15 @@ func (h *ReplayHandler) Stop(w http.ResponseWriter, r *http.Request) {
 		h.log.Error().Err(err).Msg("failed to stop replay session")
 		response.InternalError(w)
 		return
+	}
+
+	project, err := h.store.GetProject(r.Context(), session.ProjectID)
+	if err == nil {
+		writeAuditLog(r, h.store, h.log, project.OrganizationID, models.AuditActionUpdate, "replay", &session.ID, map[string]interface{}{
+			"project_id": session.ProjectID.String(),
+			"name":       session.Name,
+			"status":     session.Status,
+		})
 	}
 
 	response.JSON(w, http.StatusOK, map[string]interface{}{

@@ -70,6 +70,17 @@ func (h *SchemaHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	project, err := h.store.GetProject(r.Context(), projectID)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			response.NotFound(w, "Project")
+			return
+		}
+		h.log.Error().Err(err).Msg("failed to verify project for schema upload")
+		response.InternalError(w)
+		return
+	}
+
 	var req uploadSchemaRequest
 	if err := request.ParseJSON(r, request.SchemaMaxBodySize, &req); err != nil {
 		if strings.Contains(err.Error(), "too large") {
@@ -131,6 +142,14 @@ func (h *SchemaHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		response.InternalError(w)
 		return
 	}
+
+	writeAuditLog(r, h.store, h.log, project.OrganizationID, models.AuditActionCreate, "schema", &schema.ID, map[string]interface{}{
+		"project_id":  projectID.String(),
+		"version":     schema.Version,
+		"schema_type": schema.SchemaType,
+		"git_commit":  schema.GitCommit,
+		"git_branch":  schema.GitBranch,
+	})
 
 	response.Created(w, schema)
 }

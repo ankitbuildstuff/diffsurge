@@ -118,6 +118,11 @@ func (h *ProjectHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	writeAuditLog(r, h.store, h.log, project.OrganizationID, models.AuditActionCreate, "project", &project.ID, map[string]interface{}{
+		"name": project.Name,
+		"slug": project.Slug,
+	})
+
 	response.Created(w, project)
 }
 
@@ -197,6 +202,11 @@ func (h *ProjectHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	writeAuditLog(r, h.store, h.log, project.OrganizationID, models.AuditActionUpdate, "project", &project.ID, map[string]interface{}{
+		"name":        project.Name,
+		"description": project.Description,
+	})
+
 	response.JSON(w, http.StatusOK, project)
 }
 
@@ -207,7 +217,8 @@ func (h *ProjectHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := h.store.GetProject(r.Context(), id); err != nil {
+	project, err := h.store.GetProject(r.Context(), id)
+	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			response.NotFound(w, "Project")
 			return
@@ -222,6 +233,11 @@ func (h *ProjectHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		response.InternalError(w)
 		return
 	}
+
+	writeAuditLog(r, h.store, h.log, project.OrganizationID, models.AuditActionDelete, "project", &id, map[string]interface{}{
+		"name": project.Name,
+		"slug": project.Slug,
+	})
 
 	response.NoContent(w)
 }
