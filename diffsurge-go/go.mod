@@ -3,6 +3,7 @@ module github.com/diffsurge-org/diffsurge
 go 1.24.0
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/alicebob/miniredis/v2 v2.36.1
 	github.com/getkin/kin-openapi v0.128.0
 	github.com/go-redis/redis/v8 v8.11.5

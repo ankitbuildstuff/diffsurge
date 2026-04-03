@@ -799,7 +799,7 @@ func (s *PostgresStore) CreateReplaySession(ctx context.Context, session *models
 		name, description, traffic_filter, start_time, end_time, sample_size, status,
 		total_requests, successful_requests, failed_requests, mismatched_responses,
 		created_by, created_at, started_at, completed_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
 		session.ID, session.ProjectID, session.SourceEnvironmentID, session.TargetEnvironmentID,
 		session.Name, session.Description, filterJSON, session.StartTime, session.EndTime,
 		session.SampleSize, session.Status, session.TotalRequests, session.SuccessfulRequests,
