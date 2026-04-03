@@ -107,13 +107,13 @@ function JsonComparison({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label className="text-xs text-zinc-500 mb-1">Original</Label>
-          <pre className="text-xs bg-zinc-50 border border-zinc-200 rounded p-3 overflow-auto max-h-[400px]">
+          <pre className="text-xs bg-zinc-50 border border-zinc-200 rounded p-3 overflow-auto max-h-100">
             {JSON.stringify(original, null, 2)}
           </pre>
         </div>
         <div>
           <Label className="text-xs text-zinc-500 mb-1">Replay</Label>
-          <pre className="text-xs bg-zinc-50 border border-zinc-200 rounded p-3 overflow-auto max-h-[400px]">
+          <pre className="text-xs bg-zinc-50 border border-zinc-200 rounded p-3 overflow-auto max-h-100">
             {JSON.stringify(replay, null, 2)}
           </pre>
         </div>

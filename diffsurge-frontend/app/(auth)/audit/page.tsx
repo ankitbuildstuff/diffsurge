@@ -108,7 +108,7 @@ function AuditLogPageContent() {
             </div>
             <div className="flex items-center gap-2">
               <Select value={actionFilter} onValueChange={setActionFilter}>
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className="w-37.5">
                   <SelectValue placeholder="All actions" />
                 </SelectTrigger>
                 <SelectContent>
@@ -121,7 +121,7 @@ function AuditLogPageContent() {
               </Select>
 
               <Select value={resourceFilter} onValueChange={setResourceFilter}>
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className="w-37.5">
                   <SelectValue placeholder="All resources" />
                 </SelectTrigger>
                 <SelectContent>
