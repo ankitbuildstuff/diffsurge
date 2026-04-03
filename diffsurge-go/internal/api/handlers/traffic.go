@@ -38,6 +38,15 @@ func (h *TrafficHandler) List(w http.ResponseWriter, r *http.Request) {
 		StatusCodes: request.QueryIntSlice(r, "status_codes"),
 		Limit:       pagination.Limit + 1, // fetch one extra to determine has_more
 	}
+	if pagination.Cursor != nil {
+		filter.CursorTime = &pagination.Cursor.Timestamp
+		if pagination.Cursor.ID != "" {
+			cursorID, err := uuid.Parse(pagination.Cursor.ID)
+			if err == nil {
+				filter.CursorID = &cursorID
+			}
+		}
+	}
 
 	if start := request.QueryTime(r, "start_time"); start != nil {
 		filter.StartTime = start
@@ -226,6 +235,7 @@ func (h *TrafficHandler) Stats(w http.ResponseWriter, r *http.Request) {
 
 	period := request.QueryString(r, "period", "24h")
 	var startTime time.Time
+	useStartTime := true
 	switch period {
 	case "1h":
 		startTime = time.Now().Add(-1 * time.Hour)
@@ -235,14 +245,18 @@ func (h *TrafficHandler) Stats(w http.ResponseWriter, r *http.Request) {
 		startTime = time.Now().Add(-7 * 24 * time.Hour)
 	case "30d":
 		startTime = time.Now().Add(-30 * 24 * time.Hour)
+	case "all":
+		useStartTime = false
 	default:
 		startTime = time.Now().Add(-24 * time.Hour)
 	}
 
 	filter := storage.TrafficFilter{
 		ProjectID: projectID,
-		StartTime: &startTime,
 		Limit:     10000,
+	}
+	if useStartTime {
+		filter.StartTime = &startTime
 	}
 
 	logs, err := h.store.FetchTraffic(r.Context(), filter)

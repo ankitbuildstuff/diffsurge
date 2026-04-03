@@ -448,6 +448,28 @@ func (s *PostgresStore) FetchTraffic(ctx context.Context, filter TrafficFilter) 
 		argIdx++
 	}
 
+	if filter.CursorTime != nil && !filter.CursorTime.IsZero() {
+		if filter.CursorID != nil && *filter.CursorID != uuid.Nil {
+			query += fmt.Sprintf(" AND (timestamp < $%d OR (timestamp = $%d AND id < $%d))", argIdx, argIdx, argIdx+1)
+			args = append(args, *filter.CursorTime, *filter.CursorID)
+			argIdx += 2
+		} else {
+			query += fmt.Sprintf(" AND timestamp < $%d", argIdx)
+			args = append(args, *filter.CursorTime)
+			argIdx++
+		}
+	}
+
+	if len(filter.Paths) > 0 {
+		placeholders := make([]string, len(filter.Paths))
+		for i, path := range filter.Paths {
+			placeholders[i] = fmt.Sprintf("$%d", argIdx)
+			args = append(args, path)
+			argIdx++
+		}
+		query += fmt.Sprintf(" AND path IN (%s)", strings.Join(placeholders, ","))
+	}
+
 	if len(filter.Methods) > 0 {
 		placeholders := make([]string, len(filter.Methods))
 		for i, m := range filter.Methods {
@@ -517,14 +539,36 @@ func (s *PostgresStore) FetchTraffic(ctx context.Context, filter TrafficFilter) 
 }
 
 func (s *PostgresStore) GetTrafficLog(ctx context.Context, id uuid.UUID) (*models.TrafficLog, error) {
-	logs, err := s.FetchTraffic(ctx, TrafficFilter{Limit: 1})
-	if err != nil {
-		return nil, err
-	}
-	if len(logs) == 0 {
+	query := `SELECT id, project_id, environment_id, method, path, query_params,
+		request_headers, request_body, status_code, response_headers, response_body,
+		timestamp, latency_ms, ip_address, user_agent, pii_redacted
+		FROM traffic_logs WHERE id = $1`
+
+	var log models.TrafficLog
+	var queryParams, reqHeaders, reqBody, respHeaders, respBody []byte
+	var ipAddress, userAgent sql.NullString
+
+	err := s.db.QueryRowContext(ctx, query, id).Scan(
+		&log.ID, &log.ProjectID, &log.EnvironmentID, &log.Method, &log.Path,
+		&queryParams, &reqHeaders, &reqBody, &log.StatusCode, &respHeaders, &respBody,
+		&log.Timestamp, &log.LatencyMs, &ipAddress, &userAgent, &log.PIIRedacted,
+	)
+	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("traffic log not found: %s", id)
 	}
-	return &logs[0], nil
+	if err != nil {
+		return nil, fmt.Errorf("getting traffic log: %w", err)
+	}
+
+	log.IPAddress = ipAddress.String
+	log.UserAgent = userAgent.String
+	json.Unmarshal(queryParams, &log.QueryParams)     //nolint:errcheck
+	json.Unmarshal(reqHeaders, &log.RequestHeaders)   //nolint:errcheck
+	json.Unmarshal(reqBody, &log.RequestBody)         //nolint:errcheck
+	json.Unmarshal(respHeaders, &log.ResponseHeaders) //nolint:errcheck
+	json.Unmarshal(respBody, &log.ResponseBody)       //nolint:errcheck
+
+	return &log, nil
 }
 
 func (s *PostgresStore) DeleteTraffic(ctx context.Context, filter TrafficFilter) (int64, error) {
@@ -752,11 +796,15 @@ func (s *PostgresStore) CreateReplaySession(ctx context.Context, session *models
 
 	_, err := s.db.ExecContext(ctx,
 		`INSERT INTO replay_sessions (id, project_id, source_environment_id, target_environment_id,
-		name, description, traffic_filter, start_time, end_time, sample_size, status, created_by)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+		name, description, traffic_filter, start_time, end_time, sample_size, status,
+		total_requests, successful_requests, failed_requests, mismatched_responses,
+		created_by, created_at, started_at, completed_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
 		session.ID, session.ProjectID, session.SourceEnvironmentID, session.TargetEnvironmentID,
 		session.Name, session.Description, filterJSON, session.StartTime, session.EndTime,
-		session.SampleSize, session.Status, createdBy)
+		session.SampleSize, session.Status, session.TotalRequests, session.SuccessfulRequests,
+		session.FailedRequests, session.MismatchedResponses, createdBy, session.CreatedAt,
+		session.StartedAt, session.CompletedAt)
 	if err != nil {
 		return fmt.Errorf("creating replay session: %w", err)
 	}

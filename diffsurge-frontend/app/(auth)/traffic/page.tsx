@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { trafficApi, type TrafficFilters } from "@/lib/api/traffic";
 import { useProject } from "@/lib/providers/project-provider";
 import Link from "next/link";
@@ -52,14 +52,17 @@ export default function TrafficPage() {
   const [methodFilter, setMethodFilter] = useState<string>("");
   const [showFilters, setShowFilters] = useState(false);
 
-  const { data, isLoading, isError, refetch } = useQuery({
+  const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ["traffic", projectId, filters],
-    queryFn: () => trafficApi.list(projectId, filters),
+    queryFn: ({ pageParam }) => trafficApi.list(projectId, filters, pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.pagination.has_more ? lastPage.pagination.next_cursor : undefined,
     enabled: !!projectId,
     staleTime: 15_000,
   });
 
-  const logs = data?.data ?? [];
+  const logs = data?.pages.flatMap((page) => page.data) ?? [];
 
   if (!projectId) {
     return (
@@ -199,10 +202,14 @@ export default function TrafficPage() {
           </div>
         )}
 
-        {data?.pagination.has_more && (
+        {hasNextPage && (
           <div className="border-t border-zinc-100 px-4 py-3 text-center">
-            <button className="text-xs font-medium text-zinc-600 hover:text-zinc-900">
-              Load more
+            <button
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              className="text-xs font-medium text-zinc-600 hover:text-zinc-900 disabled:opacity-50"
+            >
+              {isFetchingNextPage ? "Loading..." : "Load more"}
             </button>
           </div>
         )}

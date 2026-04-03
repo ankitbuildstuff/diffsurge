@@ -136,7 +136,7 @@ func runReplay(cmd *cobra.Command, args []string) error {
 
 	// Upload results to dashboard if requested
 	if replayUpload {
-		if err := uploadReplayResults(cmd, summary); err != nil {
+		if err := uploadReplayResults(cmd, summary, results, comparisons); err != nil {
 			fmt.Fprintf(cmd.OutOrStderr(), "\n⚠ Failed to upload replay results: %v\n", err)
 		} else {
 			fmt.Fprintf(cmd.OutOrStdout(), "\n✓ Replay results uploaded to dashboard\n")
@@ -183,7 +183,7 @@ func loadTrafficFromFile(path string) ([]models.TrafficLog, error) {
 	return nil, fmt.Errorf("could not parse traffic from file (expected JSON array or {\"traffic\": [...]})")
 }
 
-func uploadReplayResults(cmd *cobra.Command, summary replayer.ReportSummary) error {
+func uploadReplayResults(cmd *cobra.Command, summary replayer.ReportSummary, results []replayer.Result, comparisons []replayer.ComparisonResult) error {
 	if cliCfg == nil || cliCfg.APIKey == "" {
 		return fmt.Errorf("API key not configured (set SURGE_API_KEY)")
 	}
@@ -192,6 +192,22 @@ func uploadReplayResults(cmd *cobra.Command, summary replayer.ReportSummary) err
 	}
 
 	client := NewAPIClient(cliCfg.APIURL, cliCfg.APIKey)
+
+	replayResults := make([]map[string]interface{}, 0, len(results))
+	for i, result := range results {
+		model := replayer.ReplayToModel(uuid.Nil, result, comparisons[i])
+		replayResults = append(replayResults, map[string]interface{}{
+			"original_traffic_log_id": model.OriginalTrafficLogID,
+			"target_status_code":      model.TargetStatusCode,
+			"target_response_body":    model.TargetResponseBody,
+			"target_latency_ms":       model.TargetLatencyMs,
+			"status_match":            model.StatusMatch,
+			"body_match":              model.BodyMatch,
+			"diff_report":             model.DiffReport,
+			"severity":                model.Severity,
+			"error_message":           model.ErrorMessage,
+		})
+	}
 
 	now := time.Now()
 	payload := map[string]interface{}{
@@ -206,6 +222,7 @@ func uploadReplayResults(cmd *cobra.Command, summary replayer.ReportSummary) err
 		"mismatched_responses":  summary.Mismatched,
 		"started_at":            now.Add(-summary.Duration),
 		"completed_at":          now,
+		"results":               replayResults,
 	}
 
 	body, err := json.Marshal(payload)

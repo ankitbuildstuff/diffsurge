@@ -13,6 +13,8 @@ type TrafficFilter struct {
 	EnvironmentID *uuid.UUID
 	StartTime     *time.Time
 	EndTime       *time.Time
+	CursorTime    *time.Time
+	CursorID      *uuid.UUID
 	Paths         []string
 	Methods       []string
 	StatusCodes   []int

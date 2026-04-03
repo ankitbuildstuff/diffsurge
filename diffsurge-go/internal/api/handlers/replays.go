@@ -32,13 +32,26 @@ type createReplayRequest struct {
 	TrafficFilter       map[string]interface{} `json:"traffic_filter,omitempty"`
 
 	// Summary fields for CLI/uploaded replays
-	Status              string     `json:"status,omitempty"`
-	TotalRequests       int        `json:"total_requests,omitempty"`
-	SuccessfulRequests  int        `json:"successful_requests,omitempty"`
-	FailedRequests      int        `json:"failed_requests,omitempty"`
-	MismatchedResponses int        `json:"mismatched_responses,omitempty"`
-	StartedAt           *time.Time `json:"started_at,omitempty"`
-	CompletedAt         *time.Time `json:"completed_at,omitempty"`
+	Status              string                      `json:"status,omitempty"`
+	TotalRequests       int                         `json:"total_requests,omitempty"`
+	SuccessfulRequests  int                         `json:"successful_requests,omitempty"`
+	FailedRequests      int                         `json:"failed_requests,omitempty"`
+	MismatchedResponses int                         `json:"mismatched_responses,omitempty"`
+	StartedAt           *time.Time                  `json:"started_at,omitempty"`
+	CompletedAt         *time.Time                  `json:"completed_at,omitempty"`
+	Results             []createReplayResultRequest `json:"results,omitempty"`
+}
+
+type createReplayResultRequest struct {
+	OriginalTrafficLogID string                 `json:"original_traffic_log_id"`
+	TargetStatusCode     int                    `json:"target_status_code"`
+	TargetResponseBody   map[string]interface{} `json:"target_response_body,omitempty"`
+	TargetLatencyMs      int                    `json:"target_latency_ms"`
+	StatusMatch          bool                   `json:"status_match"`
+	BodyMatch            bool                   `json:"body_match"`
+	DiffReport           map[string]interface{} `json:"diff_report,omitempty"`
+	Severity             string                 `json:"severity,omitempty"`
+	ErrorMessage         string                 `json:"error_message,omitempty"`
 }
 
 func (h *ReplayHandler) List(w http.ResponseWriter, r *http.Request) {
@@ -215,10 +228,40 @@ func (h *ReplayHandler) Create(w http.ResponseWriter, r *http.Request) {
 		CreatedAt:           time.Now(),
 	}
 
+	replayResults := make([]models.ReplayResult, 0, len(req.Results))
+	for _, item := range req.Results {
+		originalTrafficLogID, err := uuid.Parse(item.OriginalTrafficLogID)
+		if err != nil {
+			response.BadRequest(w, "invalid original_traffic_log_id format")
+			return
+		}
+
+		replayResults = append(replayResults, models.ReplayResult{
+			ID:                   uuid.New(),
+			ReplaySessionID:      session.ID,
+			OriginalTrafficLogID: originalTrafficLogID,
+			TargetStatusCode:     item.TargetStatusCode,
+			TargetResponseBody:   item.TargetResponseBody,
+			TargetLatencyMs:      item.TargetLatencyMs,
+			StatusMatch:          item.StatusMatch,
+			BodyMatch:            item.BodyMatch,
+			DiffReport:           item.DiffReport,
+			Severity:             item.Severity,
+			ErrorMessage:         item.ErrorMessage,
+			Timestamp:            time.Now(),
+		})
+	}
+
 	if err := h.store.CreateReplaySession(r.Context(), session); err != nil {
 		h.log.Error().Err(err).Msg("failed to create replay session")
 		response.InternalError(w)
 		return
+	}
+
+	for _, result := range replayResults {
+		if err := h.store.SaveReplayResult(r.Context(), &result); err != nil {
+			h.log.Error().Err(err).Msg("failed to save replay result during replay creation")
+		}
 	}
 
 	writeAuditLog(r, h.store, h.log, project.OrganizationID, models.AuditActionCreate, "replay", &session.ID, map[string]interface{}{

@@ -90,7 +90,7 @@ export default function DashboardPage() {
 
   const { data: stats, isError: statsError, refetch: refetchStats } = useQuery({
     queryKey: ["traffic-stats", projectId],
-    queryFn: () => trafficApi.stats(projectId, "24h"),
+    queryFn: () => trafficApi.stats(projectId, "all"),
     enabled: !!projectId,
     staleTime: 30_000,
     refetchInterval: 60_000,
@@ -122,7 +122,7 @@ export default function DashboardPage() {
 
   const trafficStats = stats?.data;
   const replayList = replays?.data ?? [];
-  const activeReplays = replayList.filter((r) => r.status === "running").length;
+  const replayCount = replayList.length;
 
   return (
     <div className="space-y-6">
@@ -135,7 +135,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Total requests (24h)"
+          label="Total requests"
           value={trafficStats?.total_requests ?? 0}
           icon={Radio}
           href="/traffic"
@@ -160,8 +160,8 @@ export default function DashboardPage() {
           icon={Clock}
         />
         <StatCard
-          label="Active replays"
-          value={activeReplays}
+          label="Replay sessions"
+          value={replayCount}
           icon={RefreshCw}
           href="/replay"
         />
